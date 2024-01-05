@@ -951,7 +951,8 @@ def main():
     logger.info("Python [%s]", str(sys.implementation))
     logger.info("Benchmark version [%s]", version.version())
     logger.debug("Command line arguments: %s", args)
-    print("ARGS: " + args)
+    print("ARGS: ")
+    print(args)
     # Configure networking
     net.init()
     if not args.offline:
