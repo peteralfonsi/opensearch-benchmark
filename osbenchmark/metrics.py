@@ -1678,6 +1678,7 @@ def filter_percentiles_by_sample_size(sample_size, percentiles):
             raise AssertionError("Percentiles must be between 0 and 100")
         filtered_percentiles.append(p)
         # Add checks for precision!! 
+    return filtered_percentiles
     
 
 def percentiles_for_sample_size(sample_size, latency_percentiles=None):
