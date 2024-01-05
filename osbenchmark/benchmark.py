@@ -797,6 +797,7 @@ def configure_results_publishing_params(args, cfg):
     cfg.add(config.Scope.applicationOverride, "results_publishing", "values", args.show_in_results)
     cfg.add(config.Scope.applicationOverride, "results_publishing", "output.path", args.results_file)
     cfg.add(config.Scope.applicationOverride, "results_publishing", "numbers.align", args.results_numbers_align)
+    cfg.add(config.Scope.applicationOverride, "results_publishing", "latency.percentiles", args.latency_percentiles)
 
 
 def dispatch_sub_command(arg_parser, args, cfg):
@@ -951,8 +952,8 @@ def main():
     logger.info("Python [%s]", str(sys.implementation))
     logger.info("Benchmark version [%s]", version.version())
     logger.debug("Command line arguments: %s", args)
-    print("ARGS: ")
-    print(args)
+    #print("ARGS: ")
+    #print(args)
     # Configure networking
     net.init()
     if not args.offline:
