@@ -1896,7 +1896,7 @@ class GlobalStatsCalculator:
                                                      task=task,
                                                      operation_type=operation_type,
                                                      sample_type=sample_type,
-                                                     percentiles=percentiles_for_sample_size(sample_size, latency_percentiles=self.latency_percentiles))
+                                                     percentiles=percentiles_for_sample_size(sample_size))#, latency_percentiles=self.latency_percentiles))
             mean = self.store.get_mean(metric_name,
                                        task=task,
                                        operation_type=operation_type,
