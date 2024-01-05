@@ -198,7 +198,6 @@ class SummaryResultsPublisher:
 
     def _publish_percentiles(self, name, task, value):
         lines = []
-        print("IN SummaryResultsPublisher")
         if value:
             for percentile in metrics.percentiles_for_sample_size(sys.maxsize, latency_percentiles=self.latency_percentiles):
                 percentile_value = value.get(metrics.encode_float_key(percentile))
