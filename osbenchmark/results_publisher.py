@@ -109,6 +109,10 @@ class SummaryResultsPublisher:
         self.show_processing_time = convert.to_bool(config.opts("results_publishing", "output.processingtime",
                                                                 mandatory=False, default_value=False))
         self.cwd = config.opts("node", "benchmark.cwd")
+        self.latency_percentiles = None
+        latency_percentiles = config.opts("workload", "latency.percentiles")
+        if latency_percentiles: # split comma-separated string into list of floats
+            self.latency_percentiles = [float(value) for value in latency_percentiles.split(",")]
 
     def publish(self):
         print_header(FINAL_SCORE)
@@ -186,7 +190,7 @@ class SummaryResultsPublisher:
         lines = []
         print("IN SummaryResultsPublisher")
         if value:
-            for percentile in metrics.percentiles_for_sample_size(sys.maxsize):
+            for percentile in metrics.percentiles_for_sample_size(sys.maxsize, latency_percentiles=self.latency_percentiles):
                 percentile_value = value.get(metrics.encode_float_key(percentile))
                 a_line = self._line("%sth percentile %s" % (percentile, name), task, percentile_value, "ms",
                                     force=self.publish_all_percentile_values)
