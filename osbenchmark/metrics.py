@@ -1892,11 +1892,13 @@ class GlobalStatsCalculator:
         stats = self.store.get_stats(metric_name, task=task, operation_type=operation_type, sample_type=sample_type)
         sample_size = stats["count"] if stats else 0
         if sample_size > 0:
+            # The custom latency percentiles have to be supplied here as the workload runs, 
+            # or else they aren't present when results are published
             percentiles = self.store.get_percentiles(metric_name,
                                                      task=task,
                                                      operation_type=operation_type,
                                                      sample_type=sample_type,
-                                                     percentiles=percentiles_for_sample_size(sample_size))#, latency_percentiles=self.latency_percentiles))
+                                                     percentiles=percentiles_for_sample_size(sample_size, latency_percentiles=self.latency_percentiles))
             mean = self.store.get_mean(metric_name,
                                        task=task,
                                        operation_type=operation_type,

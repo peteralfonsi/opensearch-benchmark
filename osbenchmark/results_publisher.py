@@ -94,6 +94,19 @@ def format_as_csv(headers, data):
         for metric_record in data:
             writer.writerow(metric_record)
         return out.getvalue()
+    
+def comma_separated_string_to_number_list(string_list): 
+    # Split a comma-separated list in a string to a list of numbers. If they are whole numbers, make them ints, 
+    # so they display without decimals. 
+    # If the input is None, return None. 
+    if string_list is None: 
+        return None
+    results = [float(value) for value in string_list.split(",")]
+    for i in range(len(results)): 
+        if round(results[i]) == results[i]: 
+            results[i] = int(results[i])
+    return results
+
 
 
 class SummaryResultsPublisher:
@@ -109,10 +122,7 @@ class SummaryResultsPublisher:
         self.show_processing_time = convert.to_bool(config.opts("results_publishing", "output.processingtime",
                                                                 mandatory=False, default_value=False))
         self.cwd = config.opts("node", "benchmark.cwd")
-        self.latency_percentiles = None
-        latency_percentiles = config.opts("workload", "latency.percentiles")
-        if latency_percentiles: # split comma-separated string into list of floats
-            self.latency_percentiles = [float(value) for value in latency_percentiles.split(",")]
+        self.latency_percentiles = comma_separated_string_to_number_list(config.opts("workload", "latency.percentiles"))
 
     def publish(self):
         print_header(FINAL_SCORE)
@@ -329,6 +339,7 @@ class ComparisonResultsPublisher:
         self.cwd = config.opts("node", "benchmark.cwd")
         self.show_processing_time = convert.to_bool(config.opts("results_publishing", "output.processingtime",
                                                                 mandatory=False, default_value=False))
+        self.latency_percentiles = comma_separated_string_to_number_list(config.opts("workload", "latency.percentiles"))
         self.plain = False
 
     def publish(self, r1, r2):
@@ -426,8 +437,7 @@ class ComparisonResultsPublisher:
 
     def _publish_percentiles(self, name, task, baseline_values, contender_values):
         lines = []
-        print("IN ComparisonResultsPublisher")
-        for percentile in metrics.percentiles_for_sample_size(sys.maxsize):
+        for percentile in metrics.percentiles_for_sample_size(sys.maxsize, latency_percentiles=self.latency_percentiles):
             baseline_value = baseline_values.get(metrics.encode_float_key(percentile))
             contender_value = contender_values.get(metrics.encode_float_key(percentile))
             self._append_non_empty(lines, self._line("%sth percentile %s" % (percentile, name),
