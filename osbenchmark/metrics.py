@@ -1683,19 +1683,21 @@ def filter_percentiles_by_sample_size(sample_size, percentiles):
     filtered_percentiles = [] 
     # Round all values to the nearest 0.001%, by multiplying by 100,000 and setting to int.
     # Then we can accurately see how many significant digits there are without worrying about floating point error. 
-    round_to_nearest_percent = 0.001
+    round_to_nearest_percent = 0.001 # Must be a power of 10
     multiply_by = int(100 / (round_to_nearest_percent))
-    num_total_digits = len(str(multiply_by))
+    num_digits = len(str(multiply_by)) + 2 # +2 because a percentile * multiply_by can be maximum of 2 digits longer than multiply_by
     for p in percentiles: 
         if p < 0 or p > 100: 
             raise AssertionError("Percentiles must be between 0 and 100")
         # First pad the string with zeros on the left so that it has the proper length
-        modified_p_string = str(int(p * multiply_by)).zfill(num_total_digits)
-        # The number of actual significant digits is the length of this string minus the number of zeros at the end
+        modified_p_string = str(int(p * multiply_by)).zfill(num_digits)
+    
+        # The number of actual significant digits is the length of this string minus the number of zeros at the end, minus 2
         num_significant_digits = len(modified_p_string.rstrip("0"))
+        #print(p, modified_p_string, num_significant_digits)
 
-        # We should only include this percentile if the sample size >= 10^(number of significant digits)
-        if sample_size >= 10 ** num_significant_digits: 
+        # We should only include this percentile if the sample size >= 10^(number of significant digits - 1)
+        if sample_size >= 10 ** (num_significant_digits - 1): 
             filtered_percentiles.append(p)
     return filtered_percentiles
     
