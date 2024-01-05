@@ -1338,7 +1338,10 @@ class TestExecution:
         self.revision = revision
         self.results = results
         self.meta_data = meta_data
-        self.latency_percentiles = latency_percentiles
+        self.latency_percentiles = None 
+        if latency_percentiles: 
+            # split comma-separated string into list of floats
+            self.latency_percentiles = [float(value) for value in latency_percentiles.split(",")]
 
     @property
     def workload_name(self):
