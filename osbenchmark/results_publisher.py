@@ -184,6 +184,7 @@ class SummaryResultsPublisher:
 
     def _publish_percentiles(self, name, task, value):
         lines = []
+        print("IN SummaryResultsPublisher")
         if value:
             for percentile in metrics.percentiles_for_sample_size(sys.maxsize):
                 percentile_value = value.get(metrics.encode_float_key(percentile))
@@ -421,6 +422,7 @@ class ComparisonResultsPublisher:
 
     def _publish_percentiles(self, name, task, baseline_values, contender_values):
         lines = []
+        print("IN ComparisonResultsPublisher")
         for percentile in metrics.percentiles_for_sample_size(sys.maxsize):
             baseline_value = baseline_values.get(metrics.encode_float_key(percentile))
             contender_value = contender_values.get(metrics.encode_float_key(percentile))
