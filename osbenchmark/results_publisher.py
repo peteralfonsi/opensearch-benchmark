@@ -122,7 +122,7 @@ class SummaryResultsPublisher:
         self.show_processing_time = convert.to_bool(config.opts("results_publishing", "output.processingtime",
                                                                 mandatory=False, default_value=False))
         self.cwd = config.opts("node", "benchmark.cwd")
-        self.latency_percentiles = comma_separated_string_to_number_list(config.opts("workload", "latency.percentiles"))
+        self.latency_percentiles = comma_separated_string_to_number_list(config.opts("workload", "latency.percentiles", mandatory=False))
 
     def publish(self):
         print_header(FINAL_SCORE)
@@ -338,7 +338,7 @@ class ComparisonResultsPublisher:
         self.cwd = config.opts("node", "benchmark.cwd")
         self.show_processing_time = convert.to_bool(config.opts("results_publishing", "output.processingtime",
                                                                 mandatory=False, default_value=False))
-        self.latency_percentiles = comma_separated_string_to_number_list(config.opts("workload", "latency.percentiles"))
+        self.latency_percentiles = comma_separated_string_to_number_list(config.opts("workload", "latency.percentiles", mandatory=False))
         self.plain = False
 
     def publish(self, r1, r2):

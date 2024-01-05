@@ -1292,7 +1292,7 @@ def create_test_execution(cfg, workload, test_procedure, workload_revision=None)
     plugin_params = cfg.opts("builder", "plugin.params")
     benchmark_version = version.version()
     benchmark_revision = version.revision()
-    latency_percentiles = cfg.opts("workload", "latency.percentiles")
+    latency_percentiles = cfg.opts("workload", "latency.percentiles", mandatory=False)
 
     return TestExecution(benchmark_version, benchmark_revision,
     environment, test_execution_id, test_execution_timestamp,
