@@ -332,7 +332,7 @@ class MetaInfoScope(Enum):
 
 
 def calculate_results(store, test_execution):
-    calc = GlobalStatsCalculator(store, test_execution.workload, test_execution.test_procedure)
+    calc = GlobalStatsCalculator(store, test_execution.workload, test_execution.test_procedure, latency_percentiles=test_execution.latency_percentiles)
     return calc()
 
 
@@ -1292,12 +1292,13 @@ def create_test_execution(cfg, workload, test_procedure, workload_revision=None)
     plugin_params = cfg.opts("builder", "plugin.params")
     benchmark_version = version.version()
     benchmark_revision = version.revision()
+    latency_percentiles = cfg.opts("workload", "latency.percentiles")
 
     return TestExecution(benchmark_version, benchmark_revision,
     environment, test_execution_id, test_execution_timestamp,
     pipeline, user_tags, workload,
     workload_params, test_procedure, provision_config_instance, provision_config_instance_params,
-    plugin_params, workload_revision)
+    plugin_params, workload_revision, latency_percentiles=latency_percentiles)
 
 
 class TestExecution:
@@ -1307,7 +1308,7 @@ class TestExecution:
                  provision_config_instance_params, plugin_params,
                  workload_revision=None, provision_config_revision=None,
                  distribution_version=None, distribution_flavor=None,
-                 revision=None, results=None, meta_data=None):
+                 revision=None, results=None, meta_data=None, latency_percentiles=None):
         if results is None:
             results = {}
         # this happens when the test execution is created initially
@@ -1337,6 +1338,7 @@ class TestExecution:
         self.revision = revision
         self.results = results
         self.meta_data = meta_data
+        self.latency_percentiles = latency_percentiles
 
     @property
     def workload_name(self):
@@ -1665,9 +1667,28 @@ def encode_float_key(k):
     return str(float(k)).replace(".", "_")
 
 
-def percentiles_for_sample_size(sample_size):
+def filter_percentiles_by_sample_size(sample_size, percentiles): 
+    # Don't show percentiles if there aren't enough samples for the value to be distinct. 
+    # For example, we should only show p99.9 if there are at least 1000 values. 
+    if sample_size < 1: 
+        raise AssertionError("Percentiles require at least one sample")
+    filtered_percentiles = [] 
+    for p in percentiles: 
+        if p < 0 or p > 100: 
+            raise AssertionError("Percentiles must be between 0 and 100")
+        filtered_percentiles.append(p)
+        # Add checks for precision!! 
+    
+
+def percentiles_for_sample_size(sample_size, latency_percentiles=None):
+    # If latency_percentiles is present, as a list, also display those values (assuming there are enough samples)
     # if needed we can come up with something smarter but it'll do for now
-    if sample_size < 1:
+    percentiles = [50, 90, 99, 99.9, 99.99, 100]
+    if latency_percentiles: 
+        percentiles += latency_percentiles
+        percentiles.sort()
+    return filter_percentiles_by_sample_size(sample_size, percentiles)
+    '''if sample_size < 1:
         raise AssertionError("Percentiles require at least one sample")
     elif sample_size == 1:
         return [100]
@@ -1680,15 +1701,16 @@ def percentiles_for_sample_size(sample_size):
     elif 1000 <= sample_size < 10000:
         return [0, 10, 25, 50, 90, 99, 99.9, 100]
     else:
-        return [0, 10, 25, 50, 90, 99, 99.9, 99.99, 100]
+        return [0, 10, 25, 50, 90, 99, 99.9, 99.99, 100]'''
 
 
 class GlobalStatsCalculator:
-    def __init__(self, store, workload, test_procedure):
+    def __init__(self, store, workload, test_procedure, latency_percentiles=None):
         self.store = store
         self.logger = logging.getLogger(__name__)
         self.workload = workload
         self.test_procedure = test_procedure
+        self.latency_percentiles = latency_percentiles
 
     def __call__(self):
         result = GlobalStats()

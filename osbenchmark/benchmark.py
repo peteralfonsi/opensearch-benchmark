@@ -797,7 +797,6 @@ def configure_results_publishing_params(args, cfg):
     cfg.add(config.Scope.applicationOverride, "results_publishing", "values", args.show_in_results)
     cfg.add(config.Scope.applicationOverride, "results_publishing", "output.path", args.results_file)
     cfg.add(config.Scope.applicationOverride, "results_publishing", "numbers.align", args.results_numbers_align)
-    cfg.add(config.Scope.applicationOverride, "results_publishing", "latency.percentiles", args.latency_percentiles)
 
 
 def dispatch_sub_command(arg_parser, args, cfg):
@@ -868,6 +867,7 @@ def dispatch_sub_command(arg_parser, args, cfg):
                 "worker_ips",
                 opts.csv_to_list(args.worker_ips))
             cfg.add(config.Scope.applicationOverride, "workload", "test.mode.enabled", args.test_mode)
+            cfg.add(config.Scope.applicationOverride, "workload", "latency.percentiles", args.latency_percentiles)
             configure_workload_params(arg_parser, args, cfg)
             configure_connection_params(arg_parser, args, cfg)
             configure_telemetry_params(args, cfg)
