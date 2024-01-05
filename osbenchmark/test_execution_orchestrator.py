@@ -104,6 +104,8 @@ class BenchmarkActor(actor.BenchmarkActor):
     def receiveMsg_Setup(self, msg, sender):
         self.start_sender = sender
         self.cfg = msg.cfg
+        print("CONFIG OPTS:")
+        print(self.cfg._opts)
         self.coordinator = BenchmarkCoordinator(msg.cfg)
         self.coordinator.setup(sources=msg.sources)
         self.logger.info("Asking builder to start the engine.")
