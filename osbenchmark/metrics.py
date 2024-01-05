@@ -1687,6 +1687,8 @@ def filter_percentiles_by_sample_size(sample_size, percentiles):
 def percentiles_for_sample_size(sample_size, latency_percentiles=None):
     # If latency_percentiles is present, as a list, also display those values (assuming there are enough samples)
     # if needed we can come up with something smarter but it'll do for now
+    print("LATENCY PERCENTILES RECEIVED: ")
+    print(latency_percentiles)
     percentiles = [50, 90, 99, 99.9, 99.99, 100]
     if latency_percentiles: 
         percentiles += latency_percentiles
@@ -1714,6 +1716,8 @@ class GlobalStatsCalculator:
         self.logger = logging.getLogger(__name__)
         self.workload = workload
         self.test_procedure = test_procedure
+        print("LP AT GSC: ")
+        print(latency_percentiles)
         self.latency_percentiles = latency_percentiles
 
     def __call__(self):
