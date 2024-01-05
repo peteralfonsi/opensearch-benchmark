@@ -554,6 +554,11 @@ def create_arg_parser():
         default=False,
         help="If any processes is running, it is going to kill them and allow Benchmark to continue to run."
     )
+    test_execution_parser.add_argument(
+        "--latency-percentiles",
+        help="Defines a comma-separated list of additional percentiles to report for latency, assuming there are enough samples. By default, reports p50, 90, 99, 99.9, 99.99, and 100.",
+        default=""
+    )
 
     ###############################################################################
     #
@@ -946,6 +951,7 @@ def main():
     logger.info("Python [%s]", str(sys.implementation))
     logger.info("Benchmark version [%s]", version.version())
     logger.debug("Command line arguments: %s", args)
+    print("ARGS: " + args)
     # Configure networking
     net.init()
     if not args.offline:
