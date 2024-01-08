@@ -1801,6 +1801,7 @@ class InMemoryMetricsStoreTests(TestCase):
         } # 100,000 corresponds to precision of 0.001%, which is what we round to 
         for sample_size, expected_results in sample_size_to_result_map.items(): 
             filtered = metrics.filter_percentiles_by_sample_size(sample_size, test_percentiles)
+            print(sample_size, expected_results, filtered)
             self.assertEqual(len(filtered), len(expected_results))
             for res, exp in zip(filtered, expected_results): 
                 self.assertEqual(res, exp)
