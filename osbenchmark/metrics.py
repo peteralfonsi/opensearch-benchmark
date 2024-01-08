@@ -1706,27 +1706,11 @@ def filter_percentiles_by_sample_size(sample_size, percentiles):
 
 def percentiles_for_sample_size(sample_size, latency_percentiles=None):
     # If latency_percentiles is present, as a list, also display those values (assuming there are enough samples)
-    # if needed we can come up with something smarter but it'll do for now
-    # TODO: Filter by sample size, see commented-out code below
     percentiles = [50, 90, 99, 99.9, 99.99, 100]
     if latency_percentiles: 
         percentiles += latency_percentiles
         percentiles.sort()
     return filter_percentiles_by_sample_size(sample_size, percentiles)
-    '''if sample_size < 1:
-        raise AssertionError("Percentiles require at least one sample")
-    elif sample_size == 1:
-        return [100]
-    elif 1 < sample_size < 10:
-        return [50, 100]
-    elif 10 <= sample_size < 100:
-        return [0, 10, 25, 50, 90, 100]
-    elif 100 <= sample_size < 1000:
-        return [0, 10, 25, 50, 90, 99, 100]
-    elif 1000 <= sample_size < 10000:
-        return [0, 10, 25, 50, 90, 99, 99.9, 100]
-    else:
-        return [0, 10, 25, 50, 90, 99, 99.9, 99.99, 100]'''
 
 
 class GlobalStatsCalculator:
