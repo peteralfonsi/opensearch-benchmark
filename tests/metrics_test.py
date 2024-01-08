@@ -1799,10 +1799,9 @@ class InMemoryMetricsStoreTests(TestCase):
             10000: [0, 0.01, 0.1, 4, 10, 10.01, 45, 50, 90, 98.9, 98.91, 99, 99.9, 99.99, 100],
             100000: [0, 0.001, 0.01, 0.1, 4, 10, 10.01, 45, 50, 90, 98.9, 98.91, 98.999, 99, 99.9, 99.99, 99.999, 100],
             1000000: [0, 0.0001, 0.001, 0.01, 0.1, 4, 10, 10.01, 45, 50, 90, 98.9, 98.91, 98.999, 99, 99.9, 99.99, 99.999, 99.9999, 100]
-        } # 100,000 corresponds to precision of 0.001%, which is what we round to 
+        } # 100,000 corresponds to 0.001% which is the order of magnitude we round to, so at higher orders (>=1M samples) all values are permitted
         for sample_size, expected_results in sample_size_to_result_map.items(): 
             filtered = metrics.filter_percentiles_by_sample_size(sample_size, test_percentiles)
-            print(sample_size, expected_results, filtered)
             self.assertEqual(len(filtered), len(expected_results))
             for res, exp in zip(filtered, expected_results): 
                 self.assertEqual(res, exp)
