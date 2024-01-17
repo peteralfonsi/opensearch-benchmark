@@ -556,7 +556,7 @@ def create_arg_parser():
     )
     test_execution_parser.add_argument(
         "--latency-percentiles",
-        help="Defines a comma-separated list of additional percentiles to report for latency, assuming there are enough samples. By default, reports p50, 90, 99, 99.9, 99.99, and 100.",
+        help="A comma-separated list of additional percentiles to report for latency. Always reports p50, 90, 99, 99.9, 99.99, and 100.",
         default=""
     )
 

@@ -94,17 +94,17 @@ def format_as_csv(headers, data):
         for metric_record in data:
             writer.writerow(metric_record)
         return out.getvalue()
-    
-def comma_separated_string_to_number_list(string_list): 
-    # Split a comma-separated list in a string to a list of numbers. If they are whole numbers, make them ints, 
-    # so they display without decimals. 
-    # If the input is None, return None. 
-    if string_list is None: 
+
+def comma_separated_string_to_number_list(string_list):
+    # Split a comma-separated list in a string to a list of numbers. If they are whole numbers, make them ints,
+    # so they display without decimals.
+    # If the input is None, return None.
+    if string_list is None:
         return None
     results = [float(value) for value in string_list.split(",")]
-    for i in range(len(results)): 
-        if round(results[i]) == results[i]: 
-            results[i] = int(results[i])
+    for i, value in enumerate(results):
+        if round(value) == value:
+            results[i] = int(value)
     return results
 
 

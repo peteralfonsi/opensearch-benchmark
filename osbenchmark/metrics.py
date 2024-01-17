@@ -332,7 +332,12 @@ class MetaInfoScope(Enum):
 
 
 def calculate_results(store, test_execution):
-    calc = GlobalStatsCalculator(store, test_execution.workload, test_execution.test_procedure, latency_percentiles=test_execution.latency_percentiles)
+    calc = GlobalStatsCalculator(
+        store,
+        test_execution.workload,
+        test_execution.test_procedure,
+        latency_percentiles=test_execution.latency_percentiles
+        )
     return calc()
 
 
@@ -1338,8 +1343,8 @@ class TestExecution:
         self.revision = revision
         self.results = results
         self.meta_data = meta_data
-        self.latency_percentiles = None 
-        if latency_percentiles: 
+        self.latency_percentiles = None
+        if latency_percentiles:
             # split comma-separated string into list of floats
             self.latency_percentiles = [float(value) for value in latency_percentiles.split(",")]
 
@@ -1670,44 +1675,46 @@ def encode_float_key(k):
     return str(float(k)).replace(".", "_")
 
 
-def filter_percentiles_by_sample_size(sample_size, percentiles): 
-    # Don't show percentiles if there aren't enough samples for the value to be distinct. 
-    # For example, we should only show p99.9 if there are at least 1000 values. 
-    if sample_size < 1: 
+def filter_percentiles_by_sample_size(sample_size, percentiles):
+    # Don't show percentiles if there aren't enough samples for the value to be distinct.
+    # For example, we should only show p99.9 if there are at least 1000 values.
+    if sample_size < 1:
         raise AssertionError("Percentiles require at least one sample")
-    if sample_size == 1: 
+    if sample_size == 1:
         return [100]
-    if sample_size < 10: 
+    if sample_size < 10:
         return [50, 100]
-    
-    filtered_percentiles = [] 
-    # Round all values to the nearest 0.001%, by multiplying by 100,000 and setting to int. Finally represent it as a string, 
-    # normalized with leading zeros so that all percentiles are the same length.
-    # Then we can accurately see how many significant digits there are without worrying about floating point error. 
+
+    filtered_percentiles = []
+    # Round all values to the nearest 0.001%, by multiplying by 100,000 and setting to int. Finally represent
+    # it as a string, normalized with leading zeros so that all percentiles are the same length.
+    # Then we can accurately see how many significant digits there are without worrying about floating point error.
     round_to_nearest_percent = 0.001 # Must be a power of 10
     multiply_by = int(100 / (round_to_nearest_percent))
-    num_normalized_digits = len(str(multiply_by)) + 2 # +2 because a percentile * multiply_by can be maximum of 2 digits longer than multiply_by
-    for p in percentiles: 
-        if p < 0 or p > 100: 
+    num_normalized_digits = len(str(multiply_by)) + 2
+    # +2 because a percentile * multiply_by can be maximum of 2 digits longer than multiply_by
+    for p in percentiles:
+        if p < 0 or p > 100:
             raise AssertionError("Percentiles must be between 0 and 100")
         # First pad the string with zeros on the left to normalize its length
         modified_p_string = str(int(p * multiply_by)).zfill(num_normalized_digits)
-    
+
         # The number of actual significant digits is the length of this string minus the number of zeros at the end
         num_significant_digits = len(modified_p_string.rstrip("0"))
 
         # We should only include this percentile if the sample size >= 10^(number of significant digits - 1)
-        # example: 99.9 (or 0.01) has 4 "significant digits" in our calculation - the extra digit is the hundreds place which is 0
+        # example: 99.9 (or 0.01) has 4 "significant digits" in our calculation
+        # the extra digit is the hundreds place which is 0
         # but its precision is one part in 10^3, not 10^4
-        if sample_size >= 10 ** (num_significant_digits - 1): 
+        if sample_size >= 10 ** (num_significant_digits - 1):
             filtered_percentiles.append(p)
     return filtered_percentiles
-    
+
 
 def percentiles_for_sample_size(sample_size, latency_percentiles=None):
     # If latency_percentiles is present, as a list, also display those values (assuming there are enough samples)
     percentiles = [50, 90, 99, 99.9, 99.99, 100]
-    if latency_percentiles: 
+    if latency_percentiles:
         percentiles += latency_percentiles
         percentiles.sort()
     return filter_percentiles_by_sample_size(sample_size, percentiles)
@@ -1893,13 +1900,16 @@ class GlobalStatsCalculator:
         stats = self.store.get_stats(metric_name, task=task, operation_type=operation_type, sample_type=sample_type)
         sample_size = stats["count"] if stats else 0
         if sample_size > 0:
-            # The custom latency percentiles have to be supplied here as the workload runs, 
+            # The custom latency percentiles have to be supplied here as the workload runs,
             # or else they aren't present when results are published
             percentiles = self.store.get_percentiles(metric_name,
                                                      task=task,
                                                      operation_type=operation_type,
                                                      sample_type=sample_type,
-                                                     percentiles=percentiles_for_sample_size(sample_size, latency_percentiles=self.latency_percentiles))
+                                                     percentiles=percentiles_for_sample_size(
+                                                         sample_size,
+                                                         latency_percentiles=self.latency_percentiles
+                                                         ))
             mean = self.store.get_mean(metric_name,
                                        task=task,
                                        operation_type=operation_type,
