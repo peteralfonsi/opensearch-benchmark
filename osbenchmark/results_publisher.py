@@ -99,7 +99,7 @@ def comma_separated_string_to_number_list(string_list):
     # Split a comma-separated list in a string to a list of numbers. If they are whole numbers, make them ints,
     # so they display without decimals.
     # If the input is None, return None.
-    if string_list is None:
+    if string_list is None or len(string_list) == 0:
         return None
     results = [float(value) for value in string_list.split(",")]
     for i, value in enumerate(results):
