@@ -59,7 +59,7 @@ class OsClient:
         try:
             self._cluster_version = versions.components(info["version"]["number"])
         except BaseException:
-            msg = "Could not determine version of metrics cluster"
+            msg = "Could not determine version of metrics  cluster"
             self.logger.exception(msg)
             raise exceptions.BenchmarkError(msg)
 
