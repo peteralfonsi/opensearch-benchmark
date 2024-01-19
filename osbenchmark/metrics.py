@@ -1680,10 +1680,16 @@ def filter_percentiles_by_sample_size(sample_size, percentiles):
     # For example, we should only show p99.9 if there are at least 1000 values.
     if sample_size < 1:
         raise AssertionError("Percentiles require at least one sample")
-    if sample_size == 1:
+
+    # Treat the 1 and 1-10 case separately, to return p50 and p100 if present
+    if sample_size == 1 and 100 in percentiles:
         return [100]
     if sample_size < 10:
-        return [50, 100]
+        filtered_percentiles = []
+        for p in [50, 100]:
+            if p in percentiles:
+                filtered_percentiles.append(p)
+        return filtered_percentiles
 
     # TODO: It seems like there should be a clean way to do this with the decimal library, but I couldn't find one that worked.
 
