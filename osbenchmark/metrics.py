@@ -1692,32 +1692,15 @@ def filter_percentiles_by_sample_size(sample_size, percentiles):
                 filtered_percentiles.append(p)
         return filtered_percentiles
 
-    # TODO: It seems like there should be a clean way to do this with the decimal library, but I couldn't find one that worked.
-
+    effective_sample_size = 10 ** (int(math.log10(sample_size))) # round down to nearest power of ten
+    delta = 0.000001 # If (p / 100) * effective_sample_size is within this value of a whole number, assume the discrepancy is due to floating point and allow it
     filtered_percentiles = []
-    # Round all values to the nearest 0.001%, by multiplying by 100,000 and setting to int. Finally represent
-    # it as a string, normalized with leading zeros so that all values are the same length.
-    # Then we can see how many significant digits there are without worrying about floating point error.
-    round_to_nearest_percent = 0.001 # Must be a power of 10
-    multiply_by = int(100 / (round_to_nearest_percent))
-    num_normalized_digits = len(str(multiply_by)) + 2
-    # +2 because a percentile * multiply_by can be maximum of 2 digits longer than multiply_by
     for p in percentiles:
-        if p < 0 or p > 100:
-            raise AssertionError("Percentiles must be between 0 and 100")
-        # First pad the string with zeros on the left to normalize its length
-        modified_p_string = str(int(p * multiply_by)).zfill(num_normalized_digits)
+        fraction = p / 100
 
-        # The number of actual significant digits is the length of this string minus the number of zeros at the end
-        num_significant_digits = len(modified_p_string.rstrip("0"))
-
-        # We should only include this percentile if the sample size >= 10^(number of significant digits - 1)
-        # example: 99.9 (or 0.01) has 4 "significant digits" in our calculation
-        # the extra digit is the hundreds place which is 0, but its precision is one part in 10^3, not 10^4
-        if sample_size >= 10 ** (num_significant_digits - 1):
+        # check if fraction * effective_sample_size is close enough to a whole number
+        if abs((effective_sample_size * fraction) - round(effective_sample_size*fraction)) < delta:
             filtered_percentiles.append(p)
-
-    print("FILTERED PERCENTILES: ", filtered_percentiles)
     return filtered_percentiles
 
 
