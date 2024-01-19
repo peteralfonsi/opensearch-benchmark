@@ -1716,6 +1716,8 @@ def filter_percentiles_by_sample_size(sample_size, percentiles):
         # the extra digit is the hundreds place which is 0, but its precision is one part in 10^3, not 10^4
         if sample_size >= 10 ** (num_significant_digits - 1):
             filtered_percentiles.append(p)
+
+    print("FILTERED PERCENTILES: ", filtered_percentiles)
     return filtered_percentiles
 
 
