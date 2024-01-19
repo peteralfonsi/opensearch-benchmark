@@ -1678,29 +1678,33 @@ def encode_float_key(k):
 def filter_percentiles_by_sample_size(sample_size, percentiles):
     # Don't show percentiles if there aren't enough samples for the value to be distinct.
     # For example, we should only show p99.9, p45.6, or p0.01 if there are at least 1000 values.
+    # If nothing is suitable, default to just returning [100] rather than an empty list.
     if sample_size < 1:
         raise AssertionError("Percentiles require at least one sample")
 
+    filtered_percentiles = []
     # Treat the 1 and 2-10 case separately, to return p50 and p100 if present
-    if sample_size == 1 and 100 in percentiles:
-        return [100]
-    if sample_size < 10:
-        filtered_percentiles = []
+    if sample_size == 1:
+        filtered_percentiles = [100]
+    elif sample_size < 10:
         for p in [50, 100]:
             if p in percentiles:
                 filtered_percentiles.append(p)
-        return filtered_percentiles
+    else:
+        effective_sample_size = 10 ** (int(math.log10(sample_size))) # round down to nearest power of ten
+        delta = 0.000001 # If (p / 100) * effective_sample_size is within this value of a whole number,
+        # assume the discrepancy is due to floating point and allow it
+        filtered_percentiles = []
+        for p in percentiles:
+            fraction = p / 100
 
-    effective_sample_size = 10 ** (int(math.log10(sample_size))) # round down to nearest power of ten
-    delta = 0.000001 # If (p / 100) * effective_sample_size is within this value of a whole number,
-    # assume the discrepancy is due to floating point and allow it
-    filtered_percentiles = []
-    for p in percentiles:
-        fraction = p / 100
-
-        # check if fraction * effective_sample_size is close enough to a whole number
-        if abs((effective_sample_size * fraction) - round(effective_sample_size*fraction)) < delta:
-            filtered_percentiles.append(p)
+            # check if fraction * effective_sample_size is close enough to a whole number
+            if abs((effective_sample_size * fraction) - round(effective_sample_size*fraction)) < delta:
+                filtered_percentiles.append(p)
+                
+    # if no percentiles are suitable, just return 100
+    if len(filtered_percentiles) == 0:
+        return [100]
     return filtered_percentiles
 
 def percentiles_for_sample_size(sample_size, latency_percentiles=None):
