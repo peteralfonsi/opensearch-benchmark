@@ -123,7 +123,6 @@ class SummaryResultsPublisher:
                                                                 mandatory=False, default_value=False))
         self.cwd = config.opts("node", "benchmark.cwd")
         self.latency_percentiles = comma_separated_string_to_number_list(config.opts("workload", "latency.percentiles", mandatory=False))
-        print("LATENCY PERCENTILES RECEIVED BY RESULTS PUBLISHER: ", self.latency_percentiles)
 
     def publish(self):
         print_header(FINAL_SCORE)

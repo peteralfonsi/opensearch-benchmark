@@ -1677,12 +1677,11 @@ def encode_float_key(k):
 
 def filter_percentiles_by_sample_size(sample_size, percentiles):
     # Don't show percentiles if there aren't enough samples for the value to be distinct.
-    # For example, we should only show p99.9 if there are at least 1000 values.
-    print("RECEIVED PERCENTILES: ", percentiles)
+    # For example, we should only show p99.9, p45.6, or p0.01 if there are at least 1000 values.
     if sample_size < 1:
         raise AssertionError("Percentiles require at least one sample")
 
-    # Treat the 1 and 1-10 case separately, to return p50 and p100 if present
+    # Treat the 1 and 2-10 case separately, to return p50 and p100 if present
     if sample_size == 1 and 100 in percentiles:
         return [100]
     if sample_size < 10:
@@ -1703,15 +1702,13 @@ def filter_percentiles_by_sample_size(sample_size, percentiles):
             filtered_percentiles.append(p)
     return filtered_percentiles
 
-
 def percentiles_for_sample_size(sample_size, latency_percentiles=None):
     # If latency_percentiles is present, as a list, also display those values (assuming there are enough samples)
     percentiles = [50, 90, 99, 99.9, 99.99, 100]
     if latency_percentiles:
-        percentiles += latency_percentiles
+        percentiles = latency_percentiles # Defaults get overridden if a value is provided
         percentiles.sort()
     return filter_percentiles_by_sample_size(sample_size, percentiles)
-
 
 class GlobalStatsCalculator:
     def __init__(self, store, workload, test_procedure, latency_percentiles=None):
