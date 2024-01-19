@@ -38,6 +38,7 @@ from enum import Enum, IntEnum
 from http.client import responses
 import opensearchpy.helpers
 import tabulate
+from decimal import Decimal, ROUND_DOWN
 
 from osbenchmark import client, time, exceptions, config, version, paths
 from osbenchmark.utils import convert, console, io, versions
@@ -1685,10 +1686,12 @@ def filter_percentiles_by_sample_size(sample_size, percentiles):
     if sample_size < 10:
         return [50, 100]
 
+    # TODO: It seems like there should be a clean way to do this with the decimal library, but I couldn't find one that worked.
+
     filtered_percentiles = []
     # Round all values to the nearest 0.001%, by multiplying by 100,000 and setting to int. Finally represent
-    # it as a string, normalized with leading zeros so that all percentiles are the same length.
-    # Then we can accurately see how many significant digits there are without worrying about floating point error.
+    # it as a string, normalized with leading zeros so that all values are the same length.
+    # Then we can see how many significant digits there are without worrying about floating point error.
     round_to_nearest_percent = 0.001 # Must be a power of 10
     multiply_by = int(100 / (round_to_nearest_percent))
     num_normalized_digits = len(str(multiply_by)) + 2
@@ -1704,8 +1707,7 @@ def filter_percentiles_by_sample_size(sample_size, percentiles):
 
         # We should only include this percentile if the sample size >= 10^(number of significant digits - 1)
         # example: 99.9 (or 0.01) has 4 "significant digits" in our calculation
-        # the extra digit is the hundreds place which is 0
-        # but its precision is one part in 10^3, not 10^4
+        # the extra digit is the hundreds place which is 0, but its precision is one part in 10^3, not 10^4
         if sample_size >= 10 ** (num_significant_digits - 1):
             filtered_percentiles.append(p)
     return filtered_percentiles
