@@ -1678,6 +1678,7 @@ def encode_float_key(k):
 def filter_percentiles_by_sample_size(sample_size, percentiles):
     # Don't show percentiles if there aren't enough samples for the value to be distinct.
     # For example, we should only show p99.9 if there are at least 1000 values.
+    print("RECEIVED PERCENTILES: ", percentiles)
     if sample_size < 1:
         raise AssertionError("Percentiles require at least one sample")
 
