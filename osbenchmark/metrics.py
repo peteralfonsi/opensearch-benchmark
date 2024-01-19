@@ -1701,7 +1701,6 @@ def filter_percentiles_by_sample_size(sample_size, percentiles):
             # check if fraction * effective_sample_size is close enough to a whole number
             if abs((effective_sample_size * fraction) - round(effective_sample_size*fraction)) < delta:
                 filtered_percentiles.append(p)
-                
     # if no percentiles are suitable, just return 100
     if len(filtered_percentiles) == 0:
         return [100]
