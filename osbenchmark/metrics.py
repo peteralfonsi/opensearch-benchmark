@@ -38,7 +38,6 @@ from enum import Enum, IntEnum
 from http.client import responses
 import opensearchpy.helpers
 import tabulate
-from decimal import Decimal, ROUND_DOWN
 
 from osbenchmark import client, time, exceptions, config, version, paths
 from osbenchmark.utils import convert, console, io, versions
