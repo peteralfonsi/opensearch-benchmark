@@ -1692,7 +1692,8 @@ def filter_percentiles_by_sample_size(sample_size, percentiles):
         return filtered_percentiles
 
     effective_sample_size = 10 ** (int(math.log10(sample_size))) # round down to nearest power of ten
-    delta = 0.000001 # If (p / 100) * effective_sample_size is within this value of a whole number, assume the discrepancy is due to floating point and allow it
+    delta = 0.000001 # If (p / 100) * effective_sample_size is within this value of a whole number,
+    # assume the discrepancy is due to floating point and allow it
     filtered_percentiles = []
     for p in percentiles:
         fraction = p / 100
