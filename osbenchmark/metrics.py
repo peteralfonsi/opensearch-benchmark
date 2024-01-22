@@ -1666,6 +1666,7 @@ def encode_float_key(k):
 
 
 def percentiles_for_sample_size(sample_size):
+    print("RECEIVED SAMPLE SIZE: ", sample_size)
     # if needed we can come up with something smarter but it'll do for now
     if sample_size < 1:
         raise AssertionError("Percentiles require at least one sample")
