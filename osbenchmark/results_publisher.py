@@ -122,7 +122,11 @@ class SummaryResultsPublisher:
         self.show_processing_time = convert.to_bool(config.opts("results_publishing", "output.processingtime",
                                                                 mandatory=False, default_value=False))
         self.cwd = config.opts("node", "benchmark.cwd")
-        self.latency_percentiles = comma_separated_string_to_number_list(config.opts("workload", "latency.percentiles", mandatory=False))
+        #self.latency_percentiles = comma_separated_string_to_number_list(config.opts("workload", "latency.percentiles", mandatory=False))
+        self.display_percentiles = {
+            "throughput":[25, 50, 75],
+            "latency": comma_separated_string_to_number_list(config.opts("workload", "latency.percentiles", mandatory=False))
+        }
 
     def publish(self):
         print_header(FINAL_SCORE)
@@ -199,8 +203,10 @@ class SummaryResultsPublisher:
 
     def _publish_percentiles(self, name, task, value):
         lines = []
+        percentiles = self.display_percentiles.get(name, [50, 100]) # TODO: Change this to some overall default
+
         if value:
-            for percentile in metrics.percentiles_for_sample_size(sys.maxsize, latency_percentiles=self.latency_percentiles):
+            for percentile in metrics.percentiles_for_sample_size(sys.maxsize, latency_percentiles=percentiles):
                 percentile_value = value.get(metrics.encode_float_key(percentile))
                 a_line = self._line("%sth percentile %s" % (percentile, name), task, percentile_value, "ms",
                                     force=self.publish_all_percentile_values)
