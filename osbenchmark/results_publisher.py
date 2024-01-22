@@ -124,7 +124,7 @@ class SummaryResultsPublisher:
         self.cwd = config.opts("node", "benchmark.cwd")
         #self.latency_percentiles = comma_separated_string_to_number_list(config.opts("workload", "latency.percentiles", mandatory=False))
         self.display_percentiles = {
-            "throughput":[25, 50, 75],
+            "throughput":[20, 25, 30, 50, 75],
             "latency": comma_separated_string_to_number_list(config.opts("workload", "latency.percentiles", mandatory=False))
         }
 

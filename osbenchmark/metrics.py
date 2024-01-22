@@ -1718,6 +1718,9 @@ class GlobalStatsCalculator:
     DEFAULT_LATENCY_PERCENTILES = "50,90,99,99.9,99.99,100"
     DEFAULT_LATENCY_PERCENTILES_LIST = [float(value) for value in DEFAULT_LATENCY_PERCENTILES.split(",")]
 
+    DEFAULT_THROUGHPUT_PERCENTILES = ""
+    DEFAULT_THROUGHPUT_PERCENTILES_LIST = []
+
     def __init__(self, store, workload, test_procedure, latency_percentiles=None):
         self.store = store
         self.logger = logging.getLogger(__name__)
@@ -1739,7 +1742,7 @@ class GlobalStatsCalculator:
                     result.add_op_metrics(
                         t,
                         task.operation.name,
-                        self.summary_stats("throughput", t, op_type, percentiles_list=[25, 50, 75]),
+                        self.summary_stats("throughput", t, op_type, percentiles_list=self.DEFAULT_THROUGHPUT_PERCENTILES_LIST),
                         self.single_latency(t, op_type),
                         self.single_latency(t, op_type, metric_name="service_time"),
                         self.single_latency(t, op_type, metric_name="processing_time"),
