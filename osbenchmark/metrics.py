@@ -1719,7 +1719,7 @@ class GlobalStatsCalculator:
     DEFAULT_LATENCY_PERCENTILES_LIST = [float(value) for value in DEFAULT_LATENCY_PERCENTILES.split(",")]
 
     DEFAULT_THROUGHPUT_PERCENTILES = ""
-    DEFAULT_THROUGHPUT_PERCENTILES_LIST = []
+    DEFAULT_THROUGHPUT_PERCENTILES_LIST = [20,25,30,50,75] # TODO: CHANGE TO EMPTY LIST, test only
 
     def __init__(self, store, workload, test_procedure, latency_percentiles=None):
         self.store = store
