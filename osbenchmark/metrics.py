@@ -1706,11 +1706,11 @@ def filter_percentiles_by_sample_size(sample_size, percentiles):
         return [100]
     return filtered_percentiles
 
-def percentiles_for_sample_size(sample_size, latency_percentiles=None):
+def percentiles_for_sample_size(sample_size, percentiles_list=None):
     # If latency_percentiles is present, as a list, display those values instead (assuming there are enough samples)
     percentiles = GlobalStatsCalculator.DEFAULT_LATENCY_PERCENTILES_LIST
-    if latency_percentiles:
-        percentiles = latency_percentiles # Defaults get overridden if a value is provided
+    if percentiles_list:
+        percentiles = percentiles_list # Defaults get overridden if a value is provided
         percentiles.sort()
     return filter_percentiles_by_sample_size(sample_size, percentiles)
 
@@ -1842,13 +1842,14 @@ class GlobalStatsCalculator:
             }
 
         if percentiles_list: # modified from single_latency()
-            print("HAD PERCENTILES")
+            print("HAD PERCENTILES = ", percentiles_list)
             sample_size = stats["count"]
+            print("SAMPLE SIZE ", sample_size)
             percentiles = self.store.get_percentiles(metric_name,
                                                      task=task_name,
                                                      operation_type=operation_type,
                                                      sample_type=SampleType.Normal,
-                                                     percentiles=percentiles_for_sample_size(sample_size, latency_percentiles=percentiles_list))
+                                                     percentiles=percentiles_for_sample_size(sample_size, percentiles_list=percentiles_list))
             for k, v in percentiles.items():
                 # safely encode so we don't have any dots in field names
                 result[encode_float_key(k)] = v
@@ -1921,7 +1922,7 @@ class GlobalStatsCalculator:
                                                      sample_type=sample_type,
                                                      percentiles=percentiles_for_sample_size(
                                                          sample_size,
-                                                         latency_percentiles=self.latency_percentiles
+                                                         percentiles_list=self.latency_percentiles
                                                          ))
             mean = self.store.get_mean(metric_name,
                                        task=task,
