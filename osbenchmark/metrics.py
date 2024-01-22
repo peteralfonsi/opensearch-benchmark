@@ -1712,6 +1712,7 @@ def percentiles_for_sample_size(sample_size, latency_percentiles=None):
     if latency_percentiles:
         percentiles = latency_percentiles # Defaults get overridden if a value is provided
         percentiles.sort()
+    print("RECEIVED SAMPLE SIZE:", sample_size)
     return filter_percentiles_by_sample_size(sample_size, percentiles)
 
 class GlobalStatsCalculator:
