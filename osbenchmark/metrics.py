@@ -1352,6 +1352,7 @@ class TestExecution:
         self.meta_data = meta_data
         self.latency_percentiles = latency_percentiles
         self.throughput_percentiles = throughput_percentiles
+        print("Test execution received THROUGHPUT PERCENTILES ", self.throughput_percentiles)
 
 
     @property
