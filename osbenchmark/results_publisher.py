@@ -190,7 +190,7 @@ class SummaryResultsPublisher:
             self._line("Mean Throughput", task, throughput["mean"], unit, lambda v: "%.2f" % v),
             self._line("Median Throughput", task, throughput["median"], unit, lambda v: "%.2f" % v),
             self._line("Max Throughput", task, throughput["max"], unit, lambda v: "%.2f" % v),
-            self._publish_percentiles("throughput", task, throughput)
+            *self._publish_percentiles("throughput", task, throughput)
         )
 
     def _publish_latency(self, values, task):
