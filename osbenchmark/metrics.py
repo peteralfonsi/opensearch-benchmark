@@ -1298,12 +1298,14 @@ def create_test_execution(cfg, workload, test_procedure, workload_revision=None)
     benchmark_version = version.version()
     benchmark_revision = version.revision()
     latency_percentiles = cfg.opts("workload", "latency.percentiles", mandatory=False)
+    throughput_percentiles = cfg.opts("workload", "throughput.percentiles", mandatory=False)
 
     return TestExecution(benchmark_version, benchmark_revision,
     environment, test_execution_id, test_execution_timestamp,
     pipeline, user_tags, workload,
     workload_params, test_procedure, provision_config_instance, provision_config_instance_params,
-    plugin_params, workload_revision, latency_percentiles=latency_percentiles)
+    plugin_params, workload_revision, latency_percentiles=latency_percentiles,
+    throughput_percentiles=throughput_percentiles)
 
 
 class TestExecution:
@@ -1313,7 +1315,7 @@ class TestExecution:
                  provision_config_instance_params, plugin_params,
                  workload_revision=None, provision_config_revision=None,
                  distribution_version=None, distribution_flavor=None,
-                 revision=None, results=None, meta_data=None, latency_percentiles=None):
+                 revision=None, results=None, meta_data=None, latency_percentiles=None, throughput_percentiles=None):
         if results is None:
             results = {}
         # this happens when the test execution is created initially
@@ -1326,6 +1328,8 @@ class TestExecution:
         if latency_percentiles:
             # split comma-separated string into list of floats
             latency_percentiles = [float(value) for value in latency_percentiles.split(",")]
+        if throughput_percentiles:
+            throughput_percentiles = [float(value) for value in throughput_percentiles.split(",")]
         self.benchmark_version = benchmark_version
         self.benchmark_revision = benchmark_revision
         self.environment_name = environment_name
@@ -1347,6 +1351,7 @@ class TestExecution:
         self.results = results
         self.meta_data = meta_data
         self.latency_percentiles = latency_percentiles
+        self.throughput_percentiles = throughput_percentiles
 
 
     @property
@@ -1719,7 +1724,7 @@ class GlobalStatsCalculator:
     DEFAULT_LATENCY_PERCENTILES_LIST = [float(value) for value in DEFAULT_LATENCY_PERCENTILES.split(",")]
 
     DEFAULT_THROUGHPUT_PERCENTILES = ""
-    DEFAULT_THROUGHPUT_PERCENTILES_LIST = [20,25,30,50,75] # TODO: CHANGE TO EMPTY LIST, test only
+    DEFAULT_THROUGHPUT_PERCENTILES_LIST = []
 
     def __init__(self, store, workload, test_procedure, latency_percentiles=None):
         self.store = store

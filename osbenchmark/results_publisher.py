@@ -122,9 +122,8 @@ class SummaryResultsPublisher:
         self.show_processing_time = convert.to_bool(config.opts("results_publishing", "output.processingtime",
                                                                 mandatory=False, default_value=False))
         self.cwd = config.opts("node", "benchmark.cwd")
-        #self.latency_percentiles = comma_separated_string_to_number_list(config.opts("workload", "latency.percentiles", mandatory=False))
         self.display_percentiles = {
-            "throughput":[20, 25, 30, 50, 75],
+            "throughput":comma_separated_string_to_number_list(config.opts("workload", "throughput.percentiles", mandatory=False)),
             "latency": comma_separated_string_to_number_list(config.opts("workload", "latency.percentiles", mandatory=False))
         }
 
