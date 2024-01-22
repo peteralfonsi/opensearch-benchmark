@@ -336,7 +336,8 @@ def calculate_results(store, test_execution):
         store,
         test_execution.workload,
         test_execution.test_procedure,
-        latency_percentiles=test_execution.latency_percentiles
+        latency_percentiles=test_execution.latency_percentiles,
+        throughput_percentiles=test_execution.throughput_percentiles
         )
     return calc()
 
@@ -1352,7 +1353,6 @@ class TestExecution:
         self.meta_data = meta_data
         self.latency_percentiles = latency_percentiles
         self.throughput_percentiles = throughput_percentiles
-        print("Test execution received THROUGHPUT PERCENTILES ", self.throughput_percentiles)
 
 
     @property
@@ -1727,12 +1727,13 @@ class GlobalStatsCalculator:
     DEFAULT_THROUGHPUT_PERCENTILES = ""
     DEFAULT_THROUGHPUT_PERCENTILES_LIST = []
 
-    def __init__(self, store, workload, test_procedure, latency_percentiles=None):
+    def __init__(self, store, workload, test_procedure, latency_percentiles=None, throughput_percentiles=None):
         self.store = store
         self.logger = logging.getLogger(__name__)
         self.workload = workload
         self.test_procedure = test_procedure
         self.latency_percentiles = latency_percentiles
+        self.throughput_percentiles = throughput_percentiles
 
     def __call__(self):
         result = GlobalStats()
@@ -1748,7 +1749,7 @@ class GlobalStatsCalculator:
                     result.add_op_metrics(
                         t,
                         task.operation.name,
-                        self.summary_stats("throughput", t, op_type, percentiles_list=self.DEFAULT_THROUGHPUT_PERCENTILES_LIST),
+                        self.summary_stats("throughput", t, op_type, percentiles_list=self.throughput_percentiles),
                         self.single_latency(t, op_type),
                         self.single_latency(t, op_type, metric_name="service_time"),
                         self.single_latency(t, op_type, metric_name="processing_time"),
