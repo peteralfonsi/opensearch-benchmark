@@ -1739,7 +1739,7 @@ class GlobalStatsCalculator:
                     result.add_op_metrics(
                         t,
                         task.operation.name,
-                        self.summary_stats("throughput", t, op_type),
+                        self.summary_stats("throughput", t, op_type, [25, 50, 75]),
                         self.single_latency(t, op_type),
                         self.single_latency(t, op_type, metric_name="service_time"),
                         self.single_latency(t, op_type, metric_name="processing_time"),
@@ -1817,13 +1817,15 @@ class GlobalStatsCalculator:
     def one(self, metric_name):
         return self.store.get_one(metric_name)
 
-    def summary_stats(self, metric_name, task_name, operation_type):
+    def summary_stats(self, metric_name, task_name, operation_type, percentiles_list=None):
         mean = self.store.get_mean(metric_name, task=task_name, operation_type=operation_type, sample_type=SampleType.Normal)
         median = self.store.get_median(metric_name, task=task_name, operation_type=operation_type, sample_type=SampleType.Normal)
         unit = self.store.get_unit(metric_name, task=task_name, operation_type=operation_type)
         stats = self.store.get_stats(metric_name, task=task_name, operation_type=operation_type, sample_type=SampleType.Normal)
+
+        result = {}
         if mean and median and stats:
-            return {
+            result = {
                 "min": stats["min"],
                 "mean": mean,
                 "median": median,
@@ -1831,13 +1833,25 @@ class GlobalStatsCalculator:
                 "unit": unit
             }
         else:
-            return {
+            result = {
                 "min": None,
                 "mean": None,
                 "median": None,
                 "max": None,
                 "unit": unit
             }
+
+        if percentiles_list: # modified from single_latency()
+            sample_size = stats["count"]
+            percentiles = self.store.get_percentiles(metric_name,
+                                                     task=task_name,
+                                                     operation_type=operation_type,
+                                                     sample_type=SampleType.Normal,
+                                                     percentiles=percentiles_for_sample_size(sample_size, latency_percentiles=percentiles_list))
+            for k, v in percentiles.items():
+                # safely encode so we don't have any dots in field names
+                result[encode_float_key(k)] = v
+        return result
 
     def shard_stats(self, metric_name):
         values = self.store.get_raw(metric_name, mapper=lambda doc: doc["per-shard"])
