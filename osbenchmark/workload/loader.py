@@ -927,8 +927,9 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         self.logger = logging.getLogger(__name__)
 
     def make_randomized_param_source(self, original_search_param_source):
+        print("Type of original param source = ", type(original_search_param_source))
         assert isinstance(original_search_param_source, params.SearchParamSource)
-        return params.RandomizedSearchParamSource(original_search_param_source, )
+        return params.RandomizedSearchParamSource(original_search_param_source, self.get_randomized_values)
 
     def get_randomized_values(self, original_query_body, standard_values):
         # decide based on self.rf and standard_values how to manipulate original_query_body
