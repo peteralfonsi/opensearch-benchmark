@@ -1298,8 +1298,12 @@ def create_test_execution(cfg, workload, test_procedure, workload_revision=None)
     plugin_params = cfg.opts("builder", "plugin.params")
     benchmark_version = version.version()
     benchmark_revision = version.revision()
-    latency_percentiles = cfg.opts("workload", "latency.percentiles", mandatory=False)
-    throughput_percentiles = cfg.opts("workload", "throughput.percentiles", mandatory=False)
+    latency_percentiles = cfg.opts("workload", "latency.percentiles", mandatory=False,
+                                   default_value=TestExecution.DEFAULT_LATENCY_PERCENTILES)
+    throughput_percentiles = cfg.opts("workload", "throughput.percentiles", mandatory=False,
+                                      default_value=TestExecution.DEFAULT_THROUGHPUT_PERCENTILES)
+    # In tests, we don't get the default command-line arg value for percentiles,
+    # so supply them as defaults here as well
 
     return TestExecution(benchmark_version, benchmark_revision,
     environment, test_execution_id, test_execution_timestamp,
@@ -1310,13 +1314,24 @@ def create_test_execution(cfg, workload, test_procedure, workload_revision=None)
 
 
 class TestExecution:
+    DEFAULT_LATENCY_PERCENTILES = "50,90,99,99.9,99.99,100"
+    DEFAULT_LATENCY_PERCENTILES_LIST = [float(value) for value in DEFAULT_LATENCY_PERCENTILES.split(",")]
+
+    DEFAULT_THROUGHPUT_PERCENTILES = ""
+    DEFAULT_THROUGHPUT_PERCENTILES_LIST = []
+
+    OTHER_PERCENTILES = [50,90,99,99.9,99.99,100]
+    # Use these percentiles when the single_latency fn is called for something other than latency
+
     def __init__(self, benchmark_version, benchmark_revision, environment_name,
                  test_execution_id, test_execution_timestamp, pipeline, user_tags,
                  workload, workload_params, test_procedure, provision_config_instance,
                  provision_config_instance_params, plugin_params,
                  workload_revision=None, provision_config_revision=None,
                  distribution_version=None, distribution_flavor=None,
-                 revision=None, results=None, meta_data=None, latency_percentiles=None, throughput_percentiles=None):
+                 revision=None, results=None, meta_data=None,
+                 latency_percentiles=DEFAULT_LATENCY_PERCENTILES,
+                 throughput_percentiles=DEFAULT_THROUGHPUT_PERCENTILES):
         if results is None:
             results = {}
         # this happens when the test execution is created initially
@@ -1724,15 +1739,6 @@ def percentiles_for_sample_size(sample_size, percentiles_list=None):
     return filter_percentiles_by_sample_size(sample_size, percentiles)
 
 class GlobalStatsCalculator:
-    DEFAULT_LATENCY_PERCENTILES = "50,90,99,99.9,99.99,100"
-    DEFAULT_LATENCY_PERCENTILES_LIST = [float(value) for value in DEFAULT_LATENCY_PERCENTILES.split(",")]
-
-    DEFAULT_THROUGHPUT_PERCENTILES = ""
-    DEFAULT_THROUGHPUT_PERCENTILES_LIST = []
-
-    OTHER_PERCENTILES = [50,90,99,99.9,99.99,100]
-    # Use these percentiles when the single_latency fn is called for something other than latency
-
     def __init__(self, store, workload, test_procedure, latency_percentiles=None, throughput_percentiles=None):
         self.store = store
         self.logger = logging.getLogger(__name__)
@@ -1928,7 +1934,7 @@ class GlobalStatsCalculator:
         sample_type = SampleType.Normal
         stats = self.store.get_stats(metric_name, task=task, operation_type=operation_type, sample_type=sample_type)
         sample_size = stats["count"] if stats else 0
-        percentiles_list = self.OTHER_PERCENTILES
+        percentiles_list = TestExecution.OTHER_PERCENTILES
         if metric_name == "latency":
             percentiles_list = self.latency_percentiles
         if sample_size > 0:
