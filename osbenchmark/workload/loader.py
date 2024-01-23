@@ -928,6 +928,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
     def on_after_load_workload(self, workload):
         if not self.randomization_enabled:
             return workload
+        print("Randomizing queries!!")
         return workload # TODO: Parse queries and change their param-sources
 
 
