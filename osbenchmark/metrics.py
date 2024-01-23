@@ -1852,9 +1852,7 @@ class GlobalStatsCalculator:
             }
 
         if percentiles_list: # modified from single_latency()
-            print("HAD PERCENTILES = ", percentiles_list)
             sample_size = stats["count"]
-            print("SAMPLE SIZE ", sample_size)
             percentiles = self.store.get_percentiles(metric_name,
                                                      task=task_name,
                                                      operation_type=operation_type,
@@ -1863,7 +1861,6 @@ class GlobalStatsCalculator:
             for k, v in percentiles.items():
                 # safely encode so we don't have any dots in field names
                 result[encode_float_key(k)] = v
-            print("RESULT RETURNED FROM SUMMARY_STATS: ", result)
         return result
 
     def shard_stats(self, metric_name):

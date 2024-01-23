@@ -181,7 +181,6 @@ class SummaryResultsPublisher:
 
     def _publish_throughput(self, values, task):
         throughput = values["throughput"]
-        print("THROUGHPUT RECEIVED IN PUBLISH_THROUGHPUT: ", throughput)
         unit = throughput["unit"]
 
         return self._join(
