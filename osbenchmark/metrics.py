@@ -1717,7 +1717,7 @@ def filter_percentiles_by_sample_size(sample_size, percentiles):
 
 def percentiles_for_sample_size(sample_size, percentiles_list=None):
     # If latency_percentiles is present, as a list, display those values instead (assuming there are enough samples)
-    percentiles = GlobalStatsCalculator.DEFAULT_LATENCY_PERCENTILES_LIST
+    percentiles = []
     if percentiles_list:
         percentiles = percentiles_list # Defaults get overridden if a value is provided
         percentiles.sort()
