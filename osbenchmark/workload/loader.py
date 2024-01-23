@@ -927,6 +927,8 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         self.logger = logging.getLogger(__name__)
 
     def make_randomized_param_source(self, original_search_param_source):
+        #if original_search_param_source is None:
+
         print("Type of original param source = ", type(original_search_param_source))
         assert isinstance(original_search_param_source, params.SearchParamSource)
         return params.RandomizedSearchParamSource(original_search_param_source, self.get_randomized_values)
@@ -945,6 +947,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                 for leaf_task in task:
                     # Check that something is a search task??
                     if leaf_task.iterations is not None:
+                        print("Task name = ", leaf_task.name)
                         leaf_task.operation.param_source = self.make_randomized_param_source(leaf_task.operation.param_source)
         return workload # TODO: Parse queries and change their param-sources
 
