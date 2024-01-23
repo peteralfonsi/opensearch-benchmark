@@ -554,6 +554,15 @@ def create_arg_parser():
         default=False,
         help="If any processes is running, it is going to kill them and allow Benchmark to continue to run."
     )
+    test_execution_parser.add_argument(
+        "--randomization-enabled",
+        help="Runs the given workload with query randomization enabled (default: false).",
+        default=False,
+        action="store_true")
+    test_execution_parser.add_argument(
+        "--rf",
+        help="The repeat_frequency for query randomization. Ignored if randomization is off (default: 0.3).",
+        default=0.3)
 
     ###############################################################################
     #
@@ -862,6 +871,8 @@ def dispatch_sub_command(arg_parser, args, cfg):
                 "load_worker_coordinator_hosts",
                 opts.csv_to_list(args.load_worker_coordinator_hosts))
             cfg.add(config.Scope.applicationOverride, "workload", "test.mode.enabled", args.test_mode)
+            cfg.add(config.Scope.applicationOverride, "workload", "randomization.enabled", args.randomization_enabled)
+            cfg.add(config.Scope.applicationOverride, "workload", "randomization.rf", args.rf)
             configure_workload_params(arg_parser, args, cfg)
             configure_connection_params(arg_parser, args, cfg)
             configure_telemetry_params(args, cfg)

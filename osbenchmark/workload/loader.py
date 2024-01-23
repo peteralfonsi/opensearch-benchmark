@@ -74,7 +74,7 @@ class WorkloadProcessor:
 
 class WorkloadProcessorRegistry:
     def __init__(self, cfg):
-        self.required_processors = [TaskFilterWorkloadProcessor(cfg), TestModeWorkloadProcessor(cfg)]
+        self.required_processors = [TaskFilterWorkloadProcessor(cfg), TestModeWorkloadProcessor(cfg), QueryRandomizerWorkloadProcessor(cfg)]
         self.workload_processors = []
         self.offline = cfg.opts("system", "offline.mode")
         self.test_mode = cfg.opts("workload", "test.mode.enabled", mandatory=False, default_value=False)
@@ -919,6 +919,16 @@ class TestModeWorkloadProcessor(WorkloadProcessor):
                         leaf_task.params["target-throughput"] = f"{sys.maxsize} {original_throughput.unit}"
 
         return workload
+
+class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
+    def __init__(self, cfg):
+        self.randomization_enabled = cfg.opts("workload", "randomization.enabled", mandatory=False, default_value=False)
+        self.rf = cfg.opts("workload", "randomization.rf", mandatory=False, default_value=0.3)
+        self.logger = logging.getLogger(__name__)
+    def on_after_load_workload(self, workload):
+        if not self.randomization_enabled:
+            return workload
+        return workload # TODO: Parse queries and change their param-sources
 
 
 class CompleteWorkloadParams:
