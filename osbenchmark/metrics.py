@@ -1730,6 +1730,8 @@ class GlobalStatsCalculator:
     DEFAULT_THROUGHPUT_PERCENTILES = ""
     DEFAULT_THROUGHPUT_PERCENTILES_LIST = []
 
+    OTHER_PERCENTILES = [50,90,99,99.9,99.99,100] # Use this percentiles for any use of the single_latency fn that's not actually for latency
+
     def __init__(self, store, workload, test_procedure, latency_percentiles=None, throughput_percentiles=None):
         self.store = store
         self.logger = logging.getLogger(__name__)
@@ -1923,6 +1925,9 @@ class GlobalStatsCalculator:
         sample_type = SampleType.Normal
         stats = self.store.get_stats(metric_name, task=task, operation_type=operation_type, sample_type=sample_type)
         sample_size = stats["count"] if stats else 0
+        percentiles_list = self.OTHER_PERCENTILES
+        if metric_name == "latency":
+            percentiles_list = self.latency_percentiles
         if sample_size > 0:
             # The custom latency percentiles have to be supplied here as the workload runs,
             # or else they aren't present when results are published
@@ -1932,7 +1937,7 @@ class GlobalStatsCalculator:
                                                      sample_type=sample_type,
                                                      percentiles=percentiles_for_sample_size(
                                                          sample_size,
-                                                         percentiles_list=self.latency_percentiles
+                                                         percentiles_list=percentiles_list
                                                          ))
             mean = self.store.get_mean(metric_name,
                                        task=task,
