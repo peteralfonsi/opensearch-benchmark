@@ -1730,7 +1730,8 @@ class GlobalStatsCalculator:
     DEFAULT_THROUGHPUT_PERCENTILES = ""
     DEFAULT_THROUGHPUT_PERCENTILES_LIST = []
 
-    OTHER_PERCENTILES = [50,90,99,99.9,99.99,100] # Use this percentiles for any use of the single_latency fn that's not actually for latency
+    OTHER_PERCENTILES = [50,90,99,99.9,99.99,100]
+    # Use these percentiles when the single_latency fn is called for something other than latency
 
     def __init__(self, store, workload, test_procedure, latency_percentiles=None, throughput_percentiles=None):
         self.store = store
@@ -1862,7 +1863,9 @@ class GlobalStatsCalculator:
                                                      task=task_name,
                                                      operation_type=operation_type,
                                                      sample_type=SampleType.Normal,
-                                                     percentiles=percentiles_for_sample_size(sample_size, percentiles_list=percentiles_list))
+                                                     percentiles=percentiles_for_sample_size(
+                                                         sample_size,
+                                                         percentiles_list=percentiles_list))
             for k, v in percentiles.items():
                 # safely encode so we don't have any dots in field names
                 result[encode_float_key(k)] = v
