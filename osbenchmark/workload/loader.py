@@ -28,6 +28,7 @@ import os
 import re
 import sys
 import tempfile
+import traceback
 import urllib.error
 
 import jinja2
@@ -927,8 +928,8 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         self.logger = logging.getLogger(__name__)
         self.value_getter = QueryRandomizerValueGetter(self)
 
-    def get_new_param_source(self, workload, params_variable):
-        return params.DelegatingParamSource(workload, params_variable, self.value_getter)
+    #def get_new_param_source(self, workload, params_variable):
+    #    return params.DelegatingParamSource(workload, params_variable, self.value_getter)
 
     def get_randomized_values(self, workload, params, **kwargs):
         # use kwargs["standard_values"] in some way
@@ -937,6 +938,8 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         return params # TODO: change
 
     def on_after_load_workload(self, input_workload):
+        print("\n\nSTACK FOR PROCESSOR: \n\n")
+        traceback.print_stack()
         if not self.randomization_enabled:
             return input_workload
         print("Randomizing queries!!")
@@ -954,8 +957,8 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                         #print(leaf_task.operation.params)
                         #leaf_task.operation.param_source = self.get_new_param_source(input_workload, leaf_task.operation.params)
                         #leaf_task.operation.params = {} # ???
-                        #params.register_param_source_for_name(leaf_task.operation.name, lambda x: self.get_randomized_values(x))
-                        params.register_param_source_for_name(leaf_task.operation.name, self.get_new_param_source(input_workload, leaf_task.operation.params))
+                        params.register_param_source_for_name(leaf_task.operation.name, lambda x: self.get_randomized_values(x))
+                        #params.register_param_source_for_name(leaf_task.operation.name, self.get_new_param_source(input_workload, leaf_task.operation.params))
         return input_workload # TODO: Parse queries and change their param-sources
 
 class QueryRandomizerValueGetter:
