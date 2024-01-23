@@ -202,7 +202,7 @@ class SummaryResultsPublisher:
 
     def _publish_percentiles(self, name, task, value):
         lines = []
-        percentiles = self.display_percentiles.get(name, metrics.TestExecution.OTHER_PERCENTILES)
+        percentiles = self.display_percentiles.get(name, metrics.GlobalStatsCalculator.OTHER_PERCENTILES)
 
         if value:
             for percentile in metrics.percentiles_for_sample_size(sys.maxsize, percentiles_list=percentiles):

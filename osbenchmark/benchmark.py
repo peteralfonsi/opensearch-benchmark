@@ -557,14 +557,14 @@ def create_arg_parser():
     test_execution_parser.add_argument(
         "--latency-percentiles",
         help=f"A comma-separated list of percentiles to report for latency "
-             f"(default: {metrics.TestExecution.DEFAULT_LATENCY_PERCENTILES}).",
-        default=metrics.TestExecution.DEFAULT_LATENCY_PERCENTILES
+             f"(default: {metrics.GlobalStatsCalculator.DEFAULT_LATENCY_PERCENTILES}).",
+        default=metrics.GlobalStatsCalculator.DEFAULT_LATENCY_PERCENTILES
     )
     test_execution_parser.add_argument(
         "--throughput-percentiles",
         help=f"A comma-separated list of percentiles to report for throughput, in addition to mean/median/max/min "
-             f"(default: {metrics.TestExecution.DEFAULT_THROUGHPUT_PERCENTILES}).",
-        default=metrics.TestExecution.DEFAULT_THROUGHPUT_PERCENTILES
+             f"(default: {metrics.GlobalStatsCalculator.DEFAULT_THROUGHPUT_PERCENTILES}).",
+        default=metrics.GlobalStatsCalculator.DEFAULT_THROUGHPUT_PERCENTILES
     )
 
     ###############################################################################
