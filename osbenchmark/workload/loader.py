@@ -947,6 +947,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                         print("Operation params")
                         print(leaf_task.operation.params)
                         leaf_task.operation.param_source = self.get_new_param_source(input_workload, leaf_task.operation.params)
+                        leaf_task.operation.params = {} # ???
         return input_workload # TODO: Parse queries and change their param-sources
 
 class QueryRandomizerValueGetter:
