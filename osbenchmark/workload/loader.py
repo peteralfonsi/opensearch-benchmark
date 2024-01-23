@@ -946,7 +946,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             for task in test_procedure.schedule:
                 for leaf_task in task:
                     # Check that something is a search task??
-                    if leaf_task.operation.type is workload.OperationType.SEARCH and leaf_task.iterations is not None:
+                    if leaf_task.operation.type is workload.OperationType.Search and leaf_task.iterations is not None:
                         print("Task name = ", leaf_task.name)
                         leaf_task.operation.param_source = self.make_randomized_param_source(leaf_task.operation.param_source)
         return input_workload # TODO: Parse queries and change their param-sources
