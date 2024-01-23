@@ -545,19 +545,6 @@ class SearchParamSource(ParamSource):
     def params(self):
         return self.query_params
 
-class RandomizedSearchParamSource(ParamSource):
-    def __init__(self, search_param_source, get_values_fn, **kwargs):
-        super().__init__(search_param_source.workload, search_param_source.params, **kwargs) # ??
-        self.search_param_source = search_param_source
-        self.get_values_fn = get_values_fn
-        # A function which takes in the static query and replaces it with a randomized one. Takes in the original query as well as
-        # some way of pointing to standard repeatable values.
-    def params(self):
-        randomized_query_params = self.search_param_source.params().copy()
-        standard_values = "PLACEHOLDER" # TODO: Figure out how these should be passed in - probably thru workload processor/CLI
-        randomized_query_params["body"] = self.get_values_fn(randomized_query_params["body"], standard_values)
-        return randomized_query_params
-
 class IndexIdConflict(Enum):
     """
     Determines which id conflicts to simulate during indexing.
