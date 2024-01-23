@@ -1690,11 +1690,15 @@ def filter_percentiles_by_sample_size(sample_size, percentiles):
         raise AssertionError("Percentiles require at least one sample")
 
     filtered_percentiles = []
-    # Treat the 1 and 2-10 case separately, to return p50 and p100 if present
+    # Treat the cases below 10 separately, to return p25, 50, 75, 100 if present
     if sample_size == 1:
         filtered_percentiles = [100]
-    elif sample_size < 10:
+    elif sample_size < 4:
         for p in [50, 100]:
+            if p in percentiles:
+                filtered_percentiles.append(p)
+    elif sample_size < 10:
+        for p in [25, 50, 75, 100]:
             if p in percentiles:
                 filtered_percentiles.append(p)
     else:
@@ -1703,9 +1707,8 @@ def filter_percentiles_by_sample_size(sample_size, percentiles):
         # assume the discrepancy is due to floating point and allow it
         for p in percentiles:
             fraction = p / 100
-
             # check if fraction * effective_sample_size is close enough to a whole number
-            if abs((effective_sample_size * fraction) - round(effective_sample_size*fraction)) < delta:
+            if abs((effective_sample_size * fraction) - round(effective_sample_size*fraction)) < delta or p in [25, 75]:
                 filtered_percentiles.append(p)
     # if no percentiles are suitable, just return 100
     if len(filtered_percentiles) == 0:
