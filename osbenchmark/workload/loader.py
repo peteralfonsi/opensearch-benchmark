@@ -925,10 +925,26 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         self.randomization_enabled = cfg.opts("workload", "randomization.enabled", mandatory=False, default_value=False)
         self.rf = cfg.opts("workload", "randomization.rf", mandatory=False, default_value=0.3)
         self.logger = logging.getLogger(__name__)
+
+    def make_randomized_param_source(self, original_search_param_source):
+        assert isinstance(original_search_param_source, params.SearchParamSource)
+        return params.RandomizedSearchParamSource(original_search_param_source, )
+
+    def get_randomized_values(self, original_query_body, standard_values):
+        # decide based on self.rf and standard_values how to manipulate original_query_body
+        print("Got randomized value from function!")
+        return original_query_body
+
     def on_after_load_workload(self, workload):
         if not self.randomization_enabled:
             return workload
         print("Randomizing queries!!")
+        for test_procedure in workload.test_procedures:
+            for task in test_procedure.schedule:
+                for leaf_task in task:
+                    # Check that something is a search task??
+                    if leaf_task.iterations is not None:
+                        leaf_task.operation.param_source = self.make_randomized_param_source(leaf_task.operation.param_source)
         return workload # TODO: Parse queries and change their param-sources
 
 
