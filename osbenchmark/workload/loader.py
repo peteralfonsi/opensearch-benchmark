@@ -925,10 +925,16 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         self.randomization_enabled = cfg.opts("workload", "randomization.enabled", mandatory=False, default_value=False)
         self.rf = cfg.opts("workload", "randomization.rf", mandatory=False, default_value=0.3)
         self.logger = logging.getLogger(__name__)
-        self.value_getter = QueryRandomizerValueGetter(self)
+        #self.value_getter = QueryRandomizerValueGetter(self)
 
-    def get_new_param_source(self, workload, params_variable):
-        return params.DelegatingParamSource(workload, params_variable, self.value_getter)
+    #def get_new_param_source(self, workload, params_variable):
+    #    return params.DelegatingParamSource(workload, params_variable, self.value_getter)
+
+    def get_randomized_values(self, workload, params, **kwargs):
+        # use kwargs["standard_values"] in some way
+        # also use self.rf, to decide what to return as the new params()
+        print("Modified params!")
+        return params # TODO: change
 
     def on_after_load_workload(self, input_workload):
         if not self.randomization_enabled:
@@ -948,10 +954,10 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                         print(leaf_task.operation.params)
                         #leaf_task.operation.param_source = self.get_new_param_source(input_workload, leaf_task.operation.params)
                         #leaf_task.operation.params = {} # ???
-                        params.register_param_source_for_operation(leaf_task.operation, self.get_new_param_source(input_workload, leaf_task.operation.params))
+                        params.register_param_source_for_operation(leaf_task.operation, self.get_randomized_values)
         return input_workload # TODO: Parse queries and change their param-sources
 
-class QueryRandomizerValueGetter:
+'''class QueryRandomizerValueGetter:
     # helper class, to be used with DelegatingParamSource
     def __init__(self, processor):
         assert isinstance(processor, QueryRandomizerWorkloadProcessor)
@@ -960,7 +966,7 @@ class QueryRandomizerValueGetter:
         # use kwargs["standard_values"] in some way
         # also use self.processor.rf, to decide what to return as the new params()
         print("Modified params!")
-        return params # TODO: change
+        return params # TODO: change'''
 
 
 
