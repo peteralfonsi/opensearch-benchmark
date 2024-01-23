@@ -37,7 +37,7 @@ import tabulate
 from jinja2 import meta, select_autoescape
 
 from osbenchmark import exceptions, time, PROGRAM_NAME, config, version
-from osbenchmark.workload import params, workload, OperationType
+from osbenchmark.workload import params, workload
 from osbenchmark.utils import io, collections, convert, net, console, modules, opts, repo
 
 
@@ -938,18 +938,18 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         print("Got randomized value from function!")
         return original_query_body
 
-    def on_after_load_workload(self, workload):
+    def on_after_load_workload(self, input_workload):
         if not self.randomization_enabled:
-            return workload
+            return input_workload
         print("Randomizing queries!!")
-        for test_procedure in workload.test_procedures:
+        for test_procedure in input_workload.test_procedures:
             for task in test_procedure.schedule:
                 for leaf_task in task:
                     # Check that something is a search task??
-                    if leaf_task.operation.type is OperationType.SEARCH and leaf_task.iterations is not None:
+                    if leaf_task.operation.type is workload.OperationType.SEARCH and leaf_task.iterations is not None:
                         print("Task name = ", leaf_task.name)
                         leaf_task.operation.param_source = self.make_randomized_param_source(leaf_task.operation.param_source)
-        return workload # TODO: Parse queries and change their param-sources
+        return input_workload # TODO: Parse queries and change their param-sources
 
 
 class CompleteWorkloadParams:
