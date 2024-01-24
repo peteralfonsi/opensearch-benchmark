@@ -46,6 +46,7 @@ from osbenchmark.workload import workload
 __PARAM_SOURCES_BY_OP = {}
 __PARAM_SOURCES_BY_NAME = {}
 
+__STANDARD_VALUE_SOURCES = {}
 
 def param_source_for_operation(op_type, workload, params, task_name):
     try:
@@ -77,6 +78,9 @@ def register_param_source_for_operation(op_type, param_source_class):
 def register_param_source_for_name(name, param_source_class):
     ensure_valid_param_source(param_source_class)
     __PARAM_SOURCES_BY_NAME[name] = param_source_class
+
+def register_standard_value_source(field_name, standard_value_source):
+    __STANDARD_VALUE_SOURCES[field_name] = standard_value_source
 
 
 # only intended for tests

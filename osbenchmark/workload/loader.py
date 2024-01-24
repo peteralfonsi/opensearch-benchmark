@@ -1189,6 +1189,10 @@ class WorkloadPluginReader:
         if self.workload_processor_registry:
             self.workload_processor_registry(workload_processor)
 
+    def register_standard_value_source(self, field_name, standard_value_source):
+        # Define a value source for parameters for a given field, for use in randomization
+        params.register_standard_value_source(field_name, standard_value_source) # TODO: Should this live in params? 
+
     @property
     def meta_data(self):
         return {
