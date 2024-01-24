@@ -25,6 +25,7 @@ import glob
 import json
 import logging
 import os
+import random
 import re
 import sys
 import tempfile
@@ -925,16 +926,73 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         self.randomization_enabled = cfg.opts("workload", "randomization.enabled", mandatory=False, default_value=False)
         self.rf = cfg.opts("workload", "randomization.rf", mandatory=False, default_value=0.3)
         self.logger = logging.getLogger(__name__)
+        self.N = 10000 # TODO: pass in thru CLI?
+        self.zipf_alpha = 1
+        self.H_list = self.precompute_H(self.N, self.zipf_alpha)
+
+    # Helper functions for computing Zipf distribution
+    def H(self, i, H_list):
+        # compute the harmonic number H_n,m = sum over i from 1 to n of (1 / i^m)
+        return H_list[i-1]
+
+    def precompute_H(self, n, m):
+        H_list = [1]
+        for j in range(2, n+1):
+            H_list.append(H_list[-1] + 1 / (j ** m))
+        return H_list
+
+    def zipf_cdf_inverse(self, u, H_list):
+        # To map a uniformly distributed u from [0, 1] to some probability distribution we plug it into its inverse CDF.
+        # as the zipf cdf is discontinuous there is no real inverse but we can use this solution:
+        # https://math.stackexchange.com/questions/53671/how-to-calculate-the-inverse-cdf-for-the-zipf-distribution
+        # Precompute all values H_i,alpha for a fixed alpha and pass in as H_list
+        if (u < 0 or u >= 1):
+            raise Exception("Input u must have 0 <= u < 1")
+        n = len(H_list)
+        candidate_return = 1
+        denominator = self.H(n, H_list)
+        numerator = 0
+        while candidate_return < n:
+            numerator = self.H(candidate_return, H_list)
+            #print(u, candidate_return, numerator, denominator, numerator/denominator)
+            if u < numerator / denominator:
+                return candidate_return
+            candidate_return += 1
+        return n
+
+    def set_range(self, params, field, new_gte, new_lte):
+        try:
+            range_section = params["body"]["query"]["range"][field]
+            # TODO: check for gte/lte as well as gt/lt
+            for greater_than in ["gte", "gt"]:
+                if greater_than in range_section:
+                    range_section[greater_than] = new_gte
+            for less_than in ["lte", "lt"]:
+                if less_than in range_section:
+                    range_section[less_than] = new_lte
+            return params
+        except KeyError:
+            print("Not a range query! Params = ", params)
+            return params
 
     def get_randomized_values(self, input_workload, input_params, **kwargs):
         # use kwargs["standard_values"] in some way
         # also use self.rf, to decide what to return as the new params()
         print("Params before = ", input_params)
-        print("Modified params!")
 
         if not "index" in input_params:
-            input_params["index"] = params.get_target(input_workload, input_params) #"nyc_taxis" # TODO: Not sure if this is the right way? 
-        # The queries as listed in operations/default.json don't have the index param, unlike the custom ones you would specify in workload.py, so we have to add them ourselves
+            input_params["index"] = params.get_target(input_workload, input_params) #"nyc_taxis" # TODO: Not sure if this is the right way?
+        # The queries as listed in operations/default.json don't have the index param,
+        # unlike the custom ones you would specify in workload.py, so we have to add them ourselves
+
+        if random.random() < self.rf:
+            # Draw a repeated value
+            # placeholder
+            input_params = self.set_params(input_params, "total_amount", 0, 1)
+        else:
+            # Draw a random value
+            # placeholder
+            input_params = self.set_params(input_params, "total_amount", 0, 3)
         print("Params after = ", input_params)
         return input_params # TODO: change the actual values for range queries
 
