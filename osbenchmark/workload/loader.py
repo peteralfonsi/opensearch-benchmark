@@ -983,6 +983,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
 
                         if ("gte" in curr[key] or "gt" in curr[key]) and ("lte" in curr[key] or "lt" in curr[key]):
                             fields.append(key)
+                            print("Added {} to fields".format(key))
                 return fields
             else:
                 for key in curr.keys():
