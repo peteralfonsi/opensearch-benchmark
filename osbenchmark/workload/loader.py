@@ -1000,9 +1000,9 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
 
     def set_range(self, params, fields_and_paths, new_values):
         assert len(fields_and_paths) == len(new_values)
-        #range_section = params["body"]["query"]["range"][field] # improve this
         for field_and_path, new_value in zip(fields_and_paths, new_values):
-            range_section = self.get_dict_from_previous_path(params["body"]["query"], field_and_path[1])
+            range_section = self.get_dict_from_previous_path(params["body"]["query"], field_and_path[1])[fields_and_paths[0]]
+            # get the section of the query corresponding to the field name
             for greater_than in ["gte", "gt"]:
                 if greater_than in range_section:
                     range_section[greater_than] = new_value["gte"]
@@ -1028,7 +1028,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         if random.random() < self.rf:
             # Draw a potentially repeated value from the generated standard values
             index = self.get_repeated_value_index()
-            new_values = [params.get_standard_value(field_and_path[0], index) for field_and_path in fields_and_paths]
+            new_values = [params.get_standard_value(field_and_path[0], index) for field_and_path in fields_and_paths] # Use the same index for all fields in one query
             input_params = self.set_range(input_params, fields_and_paths, new_values)
             input_params[repeated_param_name] = True
             input_params[zipf_index_param] = index
