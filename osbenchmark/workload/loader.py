@@ -990,7 +990,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         # We could achieve this by passing in the task name to get_randomized_values as a kwarg?
         fields = []
         paths_to_fields = [] # structure within query to reach this field
-        fields = self.extract_fields_helper(params["body"]["query"], ["body", "query"])
+        fields = self.extract_fields_helper(params["body"]["query"], [])
 
         print("Extracted fields = ", fields)
         return ["total_amount"] # FIX!!
