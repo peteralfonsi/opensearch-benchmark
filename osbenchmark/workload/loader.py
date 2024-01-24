@@ -925,7 +925,6 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         self.randomization_enabled = cfg.opts("workload", "randomization.enabled", mandatory=False, default_value=False)
         self.rf = cfg.opts("workload", "randomization.rf", mandatory=False, default_value=0.3)
         self.logger = logging.getLogger(__name__)
-        self.value_getter = QueryRandomizerValueGetter(self)
 
     def get_randomized_values(self, workload, params, **kwargs):
         # use kwargs["standard_values"] in some way
