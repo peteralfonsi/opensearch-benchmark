@@ -931,7 +931,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         # also use self.rf, to decide what to return as the new params()
         print("Params before = ", params)
         print("Modified params!")
-        params["body"]["index"] = "nyc_taxis" # TODO: Figure out how to get this properly
+        params["index"] = "nyc_taxis" # TODO: Figure out how to get this properly
         # The queries as listed in operations/default.json don't have the index param, unlike the custom ones you would specify in workload.py, so we have to add them ourselves
         print("Params after = ", params)
         return params # TODO: change
