@@ -954,7 +954,6 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         numerator = 0
         while candidate_return < n:
             numerator = self.H(candidate_return, H_list)
-            #print(u, candidate_return, numerator, denominator, numerator/denominator)
             if u < numerator / denominator:
                 return candidate_return
             candidate_return += 1
@@ -977,7 +976,6 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
 
     def get_randomized_values(self, input_workload, input_params, **kwargs):
         # use kwargs["standard_values"] in some way
-        # also use self.rf, to decide what to return as the new params()
         print("Params before = ", input_params)
 
         if not "index" in input_params:
@@ -997,7 +995,6 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         return input_params # TODO: change the actual values for range queries
 
     def on_after_load_workload(self, input_workload):
-        #traceback.print_stack()
         if not self.randomization_enabled:
             return input_workload
         print("Randomizing queries!!")
@@ -1008,7 +1005,9 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                     #if leaf_task.operation.type is workload.OperationType.Search: (doesnt work for some reason)
                     if leaf_task.iterations is not None:
                         param_source_name = leaf_task.operation.name + "-randomized"
-                        params.register_param_source_for_name(param_source_name, lambda w, p, **kwargs: self.get_randomized_values(w, p, **kwargs))
+                        params.register_param_source_for_name(
+                            param_source_name,
+                            lambda w, p, **kwargs: self.get_randomized_values(w, p, **kwargs))
                         leaf_task.operation.param_source = param_source_name
         return input_workload
 
@@ -1062,7 +1061,7 @@ class WorkloadFileReader:
         :param mapping_dir: The directory where the mapping files for this workload are stored locally.
         :return: A corresponding workload instance if the workload file is valid.
         """
-
+        print("Called WorkloadFileReader.read() with workload_name={}, workload_spec_file={}, mapping_dir={}".format(workload_name, workload_spec_file, mapping_dir))
         self.logger.info("Reading workload specification file [%s].", workload_spec_file)
         # render the workload to a temporary file instead of dumping it into the logs. It is easier to check for error messages
         # involving lines numbers and it also does not bloat Benchmark's log file so much.
@@ -1212,6 +1211,7 @@ class WorkloadSpecificationReader:
         self.logger = logging.getLogger(__name__)
 
     def __call__(self, workload_name, workload_specification, mapping_dir):
+        print("Called WorkloadSpecificationReader with workload_name = {}, workload_specification={}, mapping_dir={}".format(workload_name, workload_specification, mapping_dir))
         self.name = workload_name
         description = self._r(workload_specification, "description", mandatory=False, default_value="")
 
