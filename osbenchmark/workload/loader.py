@@ -969,56 +969,46 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
 
     def extract_fields_helper(self, root, current_path):
         # Recursively call this - if the root is a field name, return that field name. If the root is a leaf node of the tree represented in the params, return None.
-        fields = []
+        fields = [] # pairs of (field, path_to_field)
         curr = self.get_dict_from_previous_path(root, current_path)
         if type(curr) is dict and curr != {}:
             if len(current_path) > 0 and current_path[-1] == "range":
                 for key in curr.keys():
                     if type(curr[key]) == dict:
-                        print("Prospective field = {}".format(key))
-                        print("Gt: ", "gt" in curr[key])
-                        print("Gte: ", "gte" in curr[key])
-                        print("lt: ", "lt" in curr[key])
-                        print("lte: ", "lte" in curr[key])
-
                         if ("gte" in curr[key] or "gt" in curr[key]) and ("lte" in curr[key] or "lt" in curr[key]):
-                            fields.append(key)
-                            print("Added {} to fields".format(key))
+                            fields.append((key, current_path))
+                            #print("Added {} to fields".format(key))
                 return fields
             else:
                 for key in curr.keys():
-                    print("curr = {}, root = {}, next key = {}".format(curr, root, key))
+                    #print("curr = {}, root = {}, next key = {}".format(curr, root, key))
                     fields += self.extract_fields_helper(root, current_path + [key])
                 return fields
         else:
             # leaf node
             return []
 
-    def extract_fields(self, params):
-        # Search for fields used in range queries
+    def extract_fields_and_paths(self, params):
+        # Search for fields used in range queries, and the paths to those fields
         # TODO: Maybe only do this the first time, and assume for a given task, the same query structure is used.
         # We could achieve this by passing in the task name to get_randomized_values as a kwarg?
-        fields = []
-        paths_to_fields = [] # structure within query to reach this field
-        fields = self.extract_fields_helper(params["body"]["query"], [])
+        fields_and_paths = self.extract_fields_helper(params["body"]["query"], [])
 
-        print("Extracted fields = ", fields)
-        return ["total_amount"] # FIX!!
+        print("Extracted fields = ", fields_and_paths)
+        return fields_and_paths
 
-    def set_range(self, params, field, new_gte, new_lte):
-        try:
-            range_section = params["body"]["query"]["range"][field] # improve this
-            # TODO: check for gte/lte as well as gt/lt
+    def set_range(self, params, fields_and_paths, new_values):
+        assert len(fields_and_paths) == len(new_values)
+        #range_section = params["body"]["query"]["range"][field] # improve this
+        for field_and_path, new_value in zip(fields_and_paths, new_values):
+            range_section = self.get_dict_from_previous_path(params, field_and_path[1])
             for greater_than in ["gte", "gt"]:
                 if greater_than in range_section:
-                    range_section[greater_than] = new_gte
+                    range_section[greater_than] = new_value["gte"]
             for less_than in ["lte", "lt"]:
                 if less_than in range_section:
-                    range_section[less_than] = new_lte
-            return params
-        except KeyError:
-            print("Not a range query! Params = ", params)
-            return params
+                    range_section[less_than] = new_value["lte"]
+        return params
 
     def get_repeated_value_index(self):
         return self.zipf_cdf_inverse(random.random(), self.H_list)
@@ -1032,22 +1022,28 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             input_params["index"] = params.get_target(input_workload, input_params) #"nyc_taxis" # TODO: Not sure if this is the right way?
 
         # TODO: Get field in properly, handle possibility of multiple fields
-        field = "total_amount"
+        #field = "total_amount"
+        fields_and_paths = self.extract_fields_and_paths(input_params)
+
         repeated_param_name = "repeated" # debug only, remove
         zipf_index_param = "zipf_index" # debug only, remove
 
         if random.random() < self.rf:
             # Draw a potentially repeated value from the generated standard values
             index = self.get_repeated_value_index()
-            range_values = params.get_standard_value(field, index)
-            input_params = self.set_range(input_params, "total_amount", range_values["gte"], range_values["lte"])
+            new_values = [params.get_standard_value(field_and_path[0], index) for field_and_path in fields_and_paths]
+            #range_values = params.get_standard_value(field, index)
+            input_params = self.set_range(input_params, fields_and_paths, new_values)
+            #input_params = self.set_range(input_params, "total_amount", range_values["gte"], range_values["lte"])
             input_params[repeated_param_name] = True
             input_params[zipf_index_param] = index
         else:
             # Draw a new random value
-            standard_value_source = params.get_standard_value_source(field)
-            range_values = standard_value_source()
-            input_params = self.set_range(input_params, "total_amount", range_values["gte"], range_values["lte"])
+            #standard_value_source = params.get_standard_value_source(field)
+            #range_values = standard_value_source()
+            new_values = [params.get_standard_value_source(field_and_path[0])() for field_and_path in fields_and_paths]
+            input_params = self.set_range(input_params, fields_and_paths, new_values)
+            #input_params = self.set_range(input_params, "total_amount", range_values["gte"], range_values["lte"])
             input_params[repeated_param_name] = False
             input_params[zipf_index_param] = None
         print("Params after = ", input_params)
