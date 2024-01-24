@@ -977,6 +977,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                     if type(curr[key]) == dict:
                         if ("gte" in curr[key] or "gt" in curr[key]) and ("lte" in curr[key] or "lt" in curr[key]):
                             fields.append(key)
+                return fields
             else:
                 for key in curr.keys():
                     fields += self.extract_fields_helper(root, current_path + [key])
