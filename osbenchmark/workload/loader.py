@@ -961,20 +961,28 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             candidate_return += 1
         return n
 
-    def extract_fields_helper(self, root, root_key_value):
+    def get_dict_from_previous_path(self, root, current_path):
+        curr = root
+        for value in current_path:
+            curr = curr[value]
+        return curr
+
+    def extract_fields_helper(self, root, current_path):
         # Recursively call this - if the root is a field name, return that field name. If the root is a leaf node of the tree represented in the params, return None.
         fields = []
-        if type(root) == dict and root != {}:
-            # check if this one is a field name
-            print("root = ", root)
-            if ("gt" in root or "gte" in root) and ("lt" in root or "lte" in root):
-                fields.append(root_key_value)
-                return fields
-            for key in root.keys():
-                fields += self.extract_fields_helper(root[key], key)
+        curr = self.get_dict_from_previous_path(root, current_path)
+        if type(curr) is dict:
+            if current_path[-1] == "range":
+                for key in curr.keys():
+                    if type(curr[key]) == dict:
+                        if ("gte" in curr[key] or "gt" in curr[key]) and ("lte" in curr[key] or "lt" in curr[key]):
+                            fields.append(key)
+            else:
+                for key in curr.keys():
+                    fields += self.extract_fields_helper(root, current_path + [key])
         else:
             # leaf node
-            return fields
+            return []
 
     def extract_fields(self, params):
         # Search for fields used in range queries
@@ -982,7 +990,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         # We could achieve this by passing in the task name to get_randomized_values as a kwarg?
         fields = []
         paths_to_fields = [] # structure within query to reach this field
-        fields = self.extract_fields_helper(params["body"]["query"], "query")
+        fields = self.extract_fields_helper(params["body"]["query"], ["body", "query"])
 
         print("Extracted fields = ", fields)
         return ["total_amount"] # FIX!!
