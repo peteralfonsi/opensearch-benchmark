@@ -560,9 +560,13 @@ def create_arg_parser():
         default=False,
         action="store_true")
     test_execution_parser.add_argument(
-        "--rf",
+        "--randomization-rf",
         help="The repeat_frequency for query randomization. Ignored if randomization is off (default: 0.3).",
         default=0.3)
+    test_execution_parser.add_argument(
+        "--randomization-n",
+        help="The number of standard values to generate for each field for query randomization. Ignored if randomization is off (default: 5000).",
+        default=5000)
 
     ###############################################################################
     #
@@ -872,7 +876,8 @@ def dispatch_sub_command(arg_parser, args, cfg):
                 opts.csv_to_list(args.load_worker_coordinator_hosts))
             cfg.add(config.Scope.applicationOverride, "workload", "test.mode.enabled", args.test_mode)
             cfg.add(config.Scope.applicationOverride, "workload", "randomization.enabled", args.randomization_enabled)
-            cfg.add(config.Scope.applicationOverride, "workload", "randomization.rf", args.rf)
+            cfg.add(config.Scope.applicationOverride, "workload", "randomization.rf", args.randomization_rf)
+            cfg.add(config.Scope.applicationOverride, "workload", "randomization.n", args.randomization_n)
             configure_workload_params(arg_parser, args, cfg)
             configure_connection_params(arg_parser, args, cfg)
             configure_telemetry_params(args, cfg)

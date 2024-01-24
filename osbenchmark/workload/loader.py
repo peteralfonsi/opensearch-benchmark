@@ -922,11 +922,13 @@ class TestModeWorkloadProcessor(WorkloadProcessor):
         return workload
 
 class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
+    DEFAULT_RF = 0.3
+    DEFAULT_N = 5000
     def __init__(self, cfg):
         self.randomization_enabled = cfg.opts("workload", "randomization.enabled", mandatory=False, default_value=False)
-        self.rf = cfg.opts("workload", "randomization.rf", mandatory=False, default_value=0.3)
+        self.rf = cfg.opts("workload", "randomization.rf", mandatory=False, default_value=self.DEFAULT_RF)
         self.logger = logging.getLogger(__name__)
-        self.N = 10000 # TODO: pass in thru CLI?
+        self.N = cfg.opts("workload", "randomization.n", mandatory=False, default_value=self.DEFAULT_N)
         self.zipf_alpha = 1
         self.H_list = self.precompute_H(self.N, self.zipf_alpha)
 
@@ -959,6 +961,9 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             candidate_return += 1
         return n
 
+    def extract_fields(self, params):
+        return ["total_amount"] # FIX!!
+
     def set_range(self, params, field, new_gte, new_lte):
         try:
             range_section = params["body"]["query"]["range"][field]
@@ -974,28 +979,29 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             print("Not a range query! Params = ", params)
             return params
 
-    def get_randomized_values(self, input_workload, input_params, **kwargs):
-        # use kwargs["standard_values"] in some way
-        print("Params before = ", input_params)
+    def get_repeated_value_index(self):
+        return self.zipf_cdf_inverse(random.random(), self.H_list)
 
-        if not "index" in input_params:
-            input_params["index"] = params.get_target(input_workload, input_params) #"nyc_taxis" # TODO: Not sure if this is the right way?
+    def get_randomized_values(self, input_workload, input_params, **kwargs):
+        print("Params before = ", input_params)
 
         # The queries as listed in operations/default.json don't have the index param,
         # unlike the custom ones you would specify in workload.py, so we have to add them ourselves
+        if not "index" in input_params:
+            input_params["index"] = params.get_target(input_workload, input_params) #"nyc_taxis" # TODO: Not sure if this is the right way?
 
-        # TODO: Get field in properly
+        # TODO: Get field in properly, handle possibility of multiple fields
         field = "total_amount"
-        standard_value_source = params.get_standard_value_source(field)
+        if not standard_value_source:
+            raise Exception("Could not find standard value source for field {}! Make sure this is registered in workload.py".format(field))
 
         if random.random() < self.rf:
-            # Draw a repeated value
-            # placeholder
-
-            input_params = self.set_range(input_params, "total_amount", 0, 1)
+            # Draw a potentially repeated value
+            range_values = params.get_standard_value(field, self.get_repeated_value_index())
+            input_params = self.set_range(input_params, "total_amount", range_values["gte"], range_values["lte"])
         else:
-            # Draw a random value
-            # placeholder
+            # Draw a new random value
+            standard_value_source = params.get_standard_value_source(field)
             range_values = standard_value_source()
             input_params = self.set_range(input_params, "total_amount", range_values["gte"], range_values["lte"])
         print("Params after = ", input_params)
@@ -1016,6 +1022,9 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                             param_source_name,
                             lambda w, p, **kwargs: self.get_randomized_values(w, p, **kwargs))
                         leaf_task.operation.param_source = param_source_name
+                        # Generate the right number of standard values for this field, if not already present
+                        for field_name in self.extract_fields(leaf_task.operation.params):
+                            params.generate_standard_values_if_absent(field_name, self.N)
         return input_workload
 
 

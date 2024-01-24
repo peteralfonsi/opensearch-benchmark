@@ -47,6 +47,7 @@ __PARAM_SOURCES_BY_OP = {}
 __PARAM_SOURCES_BY_NAME = {}
 
 __STANDARD_VALUE_SOURCES = {}
+__STANDARD_VALUES = {}
 
 def param_source_for_operation(op_type, workload, params, task_name):
     try:
@@ -82,8 +83,28 @@ def register_param_source_for_name(name, param_source_class):
     ensure_valid_param_source(param_source_class)
     __PARAM_SOURCES_BY_NAME[name] = param_source_class
 
+# These may not belong in params.py - they're here for now by analogy with register_param_source
+
 def register_standard_value_source(field_name, standard_value_source):
     __STANDARD_VALUE_SOURCES[field_name] = standard_value_source
+
+def generate_standard_values_if_absent(field_name, n):
+    if not field_name in __STANDARD_VALUES:
+        __STANDARD_VALUES[field_name] = []
+        try:
+            standard_value_source = __STANDARD_VALUE_SOURCES[field_name]
+        except KeyError:
+            raise Exception("Cannot generate standard values for field {}. Standard value source is missing".format(field_name))
+        for i in range(n):
+            __STANDARD_VALUES[field_name].append(standard_value_source())
+
+def get_standard_value(field_name, i):
+    try:
+        return __STANDARD_VALUES[field_name][i]
+    except KeyError:
+        raise Exception("No standard values generated for field {}".format(field_name))
+    except IndexError:
+        raise Exception("Standard value index {} out of range for field name {} ({} values total)".format(i, field_name, len(__STANDARD_VALUES[field_name])))
 
 
 # only intended for tests
