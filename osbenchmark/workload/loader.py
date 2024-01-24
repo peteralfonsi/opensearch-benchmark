@@ -926,15 +926,17 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         self.rf = cfg.opts("workload", "randomization.rf", mandatory=False, default_value=0.3)
         self.logger = logging.getLogger(__name__)
 
-    def get_randomized_values(self, workload, params, **kwargs):
+    def get_randomized_values(self, input_workload, input_params, **kwargs):
         # use kwargs["standard_values"] in some way
         # also use self.rf, to decide what to return as the new params()
-        print("Params before = ", params)
+        print("Params before = ", input_params)
         print("Modified params!")
-        params["index"] = "nyc_taxis" # TODO: Figure out how to get this properly
+
+        if not "index" in input_params:
+            input_params["index"] = params.get_target(input_workload, input_params) #"nyc_taxis" # TODO: Not sure if this is the right way? 
         # The queries as listed in operations/default.json don't have the index param, unlike the custom ones you would specify in workload.py, so we have to add them ourselves
-        print("Params after = ", params)
-        return params # TODO: change
+        print("Params after = ", input_params)
+        return input_params # TODO: change the actual values for range queries
 
     def on_after_load_workload(self, input_workload):
         #traceback.print_stack()
@@ -947,29 +949,10 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                     # Check that something is a search task??
                     #if leaf_task.operation.type is workload.OperationType.Search: (doesnt work for some reason)
                     if leaf_task.iterations is not None:
-                        print("Task name = ", leaf_task.name)
-                        # not sure about what to pass in as params
-                        #print("Params:")
-                        #print(leaf_task.params)
-                        #print("Operation params")
-                        #print(leaf_task.operation.params)
-                        #leaf_task.operation.param_source = self.get_new_param_source(input_workload, leaf_task.operation.params)
-                        #leaf_task.operation.params = {} # ???
                         param_source_name = leaf_task.operation.name + "-randomized"
                         params.register_param_source_for_name(param_source_name, lambda w, p, **kwargs: self.get_randomized_values(w, p, **kwargs))
                         leaf_task.operation.param_source = param_source_name
-        return input_workload # TODO: Parse queries and change their param-sources
-
-'''class QueryRandomizerValueGetter:
-    # helper class, to be used with DelegatingParamSource
-    def __init__(self, processor):
-        assert isinstance(processor, QueryRandomizerWorkloadProcessor)
-        self.processor = processor
-    def __call__(self, workload, params, **kwargs):
-        # use kwargs["standard_values"] in some way
-        # also use self.processor.rf, to decide what to return as the new params()
-        print("Modified params!")
-        return params # TODO: change'''
+        return input_workload
 
 
 
