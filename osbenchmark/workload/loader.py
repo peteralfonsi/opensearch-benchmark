@@ -993,20 +993,24 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         # TODO: Get field in properly, handle possibility of multiple fields
         field = "total_amount"
         repeated_param_name = "repeated" # debug only, remove
+        zipf_index_param = "zipf_index" # debug only, remove
 
         if random.random() < self.rf:
-            # Draw a potentially repeated value
-            range_values = params.get_standard_value(field, self.get_repeated_value_index())
+            # Draw a potentially repeated value from the generated standard values
+            index = self.get_repeated_value_index()
+            range_values = params.get_standard_value(field, index)
             input_params = self.set_range(input_params, "total_amount", range_values["gte"], range_values["lte"])
             input_params[repeated_param_name] = True
+            input_params[zipf_index_param] = index
         else:
             # Draw a new random value
             standard_value_source = params.get_standard_value_source(field)
             range_values = standard_value_source()
             input_params = self.set_range(input_params, "total_amount", range_values["gte"], range_values["lte"])
             input_params[repeated_param_name] = False
+            input_params[zipf_index_param] = None
         print("Params after = ", input_params)
-        return input_params # TODO: change the actual values for range queries
+        return input_params
 
     def on_after_load_workload(self, input_workload):
         if not self.randomization_enabled:
