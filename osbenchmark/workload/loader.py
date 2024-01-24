@@ -976,6 +976,11 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                 for key in curr.keys():
                     if type(curr[key]) == dict:
                         print("Prospective field = {}".format(key))
+                        print("Gt: ", "gt" in curr[key])
+                        print("Gte: ", "gte" in curr[key])
+                        print("lt: ", "lt" in curr[key])
+                        print("lte: ", "lte" in curr[key])
+
                         if ("gte" in curr[key] or "gt" in curr[key]) and ("lte" in curr[key] or "lt" in curr[key]):
                             fields.append(key)
                 return fields
