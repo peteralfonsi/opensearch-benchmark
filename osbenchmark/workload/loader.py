@@ -975,6 +975,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             if len(current_path) > 0 and current_path[-1] == "range":
                 for key in curr.keys():
                     if type(curr[key]) == dict:
+                        print("Prospective field = {}".format(key))
                         if ("gte" in curr[key] or "gt" in curr[key]) and ("lte" in curr[key] or "lt" in curr[key]):
                             fields.append(key)
                 return fields
