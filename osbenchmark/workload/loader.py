@@ -964,7 +964,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
     def extract_fields_helper(self, root):
         # Recursively call this - if the root is a field name, return that field name. If the root is a leaf node of the tree represented in the params, return None.
         fields = []
-        if type(root) == dict:
+        if type(root) == dict and root != {}:
             # check if this one is a field name
             print("root = ", root)
             if ("gt" in root or "gte" in root) and ("lt" in root or "lte" in root):
