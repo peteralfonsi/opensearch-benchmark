@@ -1001,7 +1001,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         assert len(fields_and_paths) == len(new_values)
         #range_section = params["body"]["query"]["range"][field] # improve this
         for field_and_path, new_value in zip(fields_and_paths, new_values):
-            range_section = self.get_dict_from_previous_path(params, field_and_path[1])
+            range_section = self.get_dict_from_previous_path(params["body"]["query"], field_and_path[1])
             for greater_than in ["gte", "gt"]:
                 if greater_than in range_section:
                     range_section[greater_than] = new_value["gte"]
@@ -1023,7 +1023,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
 
         # TODO: Get field in properly, handle possibility of multiple fields
         #field = "total_amount"
-        fields_and_paths = self.extract_fields_and_paths(input_params["body"]["query"])
+        fields_and_paths = self.extract_fields_and_paths(input_params)
 
         repeated_param_name = "repeated" # debug only, remove
         zipf_index_param = "zipf_index" # debug only, remove
