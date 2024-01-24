@@ -1023,7 +1023,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
 
         # TODO: Get field in properly, handle possibility of multiple fields
         #field = "total_amount"
-        fields_and_paths = self.extract_fields_and_paths(input_params)
+        fields_and_paths = self.extract_fields_and_paths(input_params["body"]["query"])
 
         repeated_param_name = "repeated" # debug only, remove
         zipf_index_param = "zipf_index" # debug only, remove
