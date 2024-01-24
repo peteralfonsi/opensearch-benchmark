@@ -961,12 +961,34 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             candidate_return += 1
         return n
 
+    def extract_fields_helper(self, root):
+        # Recursively call this - if the root is a field name, return that field name. If the root is a leaf node of the tree represented in the params, return None.
+        fields = []
+        if type(root) == dict:
+            # check if this one is a field name
+            if ("gt" in root or "gte" in root) and ("lt" in root or "lte" in root):
+                fields.append(root)
+                return fields
+            for key in root:
+                fields += self.extract_fields_helper(root[key])
+        else:
+            # leaf node
+            return fields
+
     def extract_fields(self, params):
+        # Search for fields used in range queries
+        # TODO: Maybe only do this the first time, and assume for a given task, the same query structure is used.
+        # We could achieve this by passing in the task name to get_randomized_values as a kwarg?
+        fields = []
+        paths_to_fields = [] # structure within query to reach this field
+        fields = self.extract_fields_helper(params["body"]["query"])
+
+        print("Extracted fields = ", fields)
         return ["total_amount"] # FIX!!
 
     def set_range(self, params, field, new_gte, new_lte):
         try:
-            range_section = params["body"]["query"]["range"][field]
+            range_section = params["body"]["query"]["range"][field] # improve this
             # TODO: check for gte/lte as well as gt/lt
             for greater_than in ["gte", "gt"]:
                 if greater_than in range_section:
