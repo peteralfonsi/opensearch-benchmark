@@ -64,6 +64,9 @@ def param_source_for_name(name, workload, params):
     else:
         return param_source(workload, params)
 
+def get_standard_value_source(field_name):
+    return __STANDARD_VALUE_SOURCES.get(field_name, None)
+
 
 def ensure_valid_param_source(param_source):
     if not inspect.isfunction(param_source) and not inspect.isclass(param_source):

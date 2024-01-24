@@ -980,17 +980,24 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
 
         if not "index" in input_params:
             input_params["index"] = params.get_target(input_workload, input_params) #"nyc_taxis" # TODO: Not sure if this is the right way?
+
         # The queries as listed in operations/default.json don't have the index param,
         # unlike the custom ones you would specify in workload.py, so we have to add them ourselves
+
+        # TODO: Get field in properly
+        field = "total_amount"
+        standard_value_source = params.get_standard_value_source(field)
 
         if random.random() < self.rf:
             # Draw a repeated value
             # placeholder
+
             input_params = self.set_range(input_params, "total_amount", 0, 1)
         else:
             # Draw a random value
             # placeholder
-            input_params = self.set_range(input_params, "total_amount", 0, 3)
+            range_values = standard_value_source()
+            input_params = self.set_range(input_params, "total_amount", range_values["gte"], range_values["lte"])
         print("Params after = ", input_params)
         return input_params # TODO: change the actual values for range queries
 
@@ -1191,7 +1198,7 @@ class WorkloadPluginReader:
 
     def register_standard_value_source(self, field_name, standard_value_source):
         # Define a value source for parameters for a given field, for use in randomization
-        params.register_standard_value_source(field_name, standard_value_source) # TODO: Should this live in params? 
+        params.register_standard_value_source(field_name, standard_value_source) # TODO: Should this live in params?
 
     @property
     def meta_data(self):
