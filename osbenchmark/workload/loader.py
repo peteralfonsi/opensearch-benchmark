@@ -980,6 +980,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                 return fields
             else:
                 for key in curr.keys():
+                    print("curr = {}, root = {}, next key = {}".format(curr, root, key))
                     fields += self.extract_fields_helper(root, current_path + [key])
         else:
             # leaf node
