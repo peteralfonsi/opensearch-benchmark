@@ -992,8 +992,6 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
 
         # TODO: Get field in properly, handle possibility of multiple fields
         field = "total_amount"
-        if not standard_value_source:
-            raise Exception("Could not find standard value source for field {}! Make sure this is registered in workload.py".format(field))
 
         if random.random() < self.rf:
             # Draw a potentially repeated value

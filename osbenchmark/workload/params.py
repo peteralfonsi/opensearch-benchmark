@@ -66,7 +66,10 @@ def param_source_for_name(name, workload, params):
         return param_source(workload, params)
 
 def get_standard_value_source(field_name):
-    return __STANDARD_VALUE_SOURCES.get(field_name, None)
+    try:
+        return __STANDARD_VALUE_SOURCES[field_name]
+    except KeyError:
+        raise Exception("Could not find standard value source for field {}! Make sure this is registered in workload.py".format(field_name))
 
 
 def ensure_valid_param_source(param_source):
