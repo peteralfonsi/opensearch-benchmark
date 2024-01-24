@@ -990,6 +990,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
 
     def extract_fields_and_paths(self, params):
         # Search for fields used in range queries, and the paths to those fields
+        # Return pairs of (field, path_to_field)
         # TODO: Maybe only do this the first time, and assume for a given task, the same query structure is used.
         # We could achieve this by passing in the task name to get_randomized_values as a kwarg?
         fields_and_paths = self.extract_fields_helper(params["body"]["query"], [])
@@ -1014,36 +1015,27 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         return self.zipf_cdf_inverse(random.random(), self.H_list)
 
     def get_randomized_values(self, input_workload, input_params, **kwargs):
-        print("Params before = ", input_params)
+        repeated_param_name = "repeated" # debug only, remove
+        zipf_index_param = "zipf_index" # debug only, remove
 
         # The queries as listed in operations/default.json don't have the index param,
         # unlike the custom ones you would specify in workload.py, so we have to add them ourselves
         if not "index" in input_params:
             input_params["index"] = params.get_target(input_workload, input_params) #"nyc_taxis" # TODO: Not sure if this is the right way?
 
-        # TODO: Get field in properly, handle possibility of multiple fields
-        #field = "total_amount"
         fields_and_paths = self.extract_fields_and_paths(input_params)
-
-        repeated_param_name = "repeated" # debug only, remove
-        zipf_index_param = "zipf_index" # debug only, remove
 
         if random.random() < self.rf:
             # Draw a potentially repeated value from the generated standard values
             index = self.get_repeated_value_index()
             new_values = [params.get_standard_value(field_and_path[0], index) for field_and_path in fields_and_paths]
-            #range_values = params.get_standard_value(field, index)
             input_params = self.set_range(input_params, fields_and_paths, new_values)
-            #input_params = self.set_range(input_params, "total_amount", range_values["gte"], range_values["lte"])
             input_params[repeated_param_name] = True
             input_params[zipf_index_param] = index
         else:
             # Draw a new random value
-            #standard_value_source = params.get_standard_value_source(field)
-            #range_values = standard_value_source()
             new_values = [params.get_standard_value_source(field_and_path[0])() for field_and_path in fields_and_paths]
             input_params = self.set_range(input_params, fields_and_paths, new_values)
-            #input_params = self.set_range(input_params, "total_amount", range_values["gte"], range_values["lte"])
             input_params[repeated_param_name] = False
             input_params[zipf_index_param] = None
         print("Params after = ", input_params)
@@ -1068,8 +1060,6 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                         for field_and_path in self.extract_fields_and_paths(leaf_task.operation.params):
                             params.generate_standard_values_if_absent(field_and_path[0], self.N)
         return input_workload
-
-
 
 class CompleteWorkloadParams:
     def __init__(self, user_specified_workload_params=None):
