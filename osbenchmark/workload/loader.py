@@ -969,7 +969,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             if ("gt" in root or "gte" in root) and ("lt" in root or "lte" in root):
                 fields.append(root)
                 return fields
-            for key in root:
+            for key in root.keys():
                 fields += self.extract_fields_helper(root[key])
         else:
             # leaf node
