@@ -929,6 +929,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
     def get_randomized_values(self, workload, params, **kwargs):
         # use kwargs["standard_values"] in some way
         # also use self.rf, to decide what to return as the new params()
+        print("Params = ", params)
         print("Modified params!")
         return params # TODO: change
 
