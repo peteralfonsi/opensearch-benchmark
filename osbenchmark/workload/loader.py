@@ -972,7 +972,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         fields = []
         curr = self.get_dict_from_previous_path(root, current_path)
         if type(curr) is dict:
-            if current_path[-1] == "range":
+            if len(current_path) > 0 and current_path[-1] == "range":
                 for key in curr.keys():
                     if type(curr[key]) == dict:
                         if ("gte" in curr[key] or "gt" in curr[key]) and ("lte" in curr[key] or "lt" in curr[key]):
