@@ -966,6 +966,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         fields = []
         if type(root) == dict:
             # check if this one is a field name
+            print("root = ", root)
             if ("gt" in root or "gte" in root) and ("lt" in root or "lte" in root):
                 fields.append(root)
                 return fields
