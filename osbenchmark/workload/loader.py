@@ -951,7 +951,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                         #print("Operation params")
                         #print(leaf_task.operation.params)
                         #leaf_task.operation.param_source = self.get_new_param_source(input_workload, leaf_task.operation.params)
-                        leaf_task.operation.params = {} # ???
+                        #leaf_task.operation.params = {} # ???
                         param_source_name = leaf_task.operation.name + "-randomized"
                         params.register_param_source_for_name(param_source_name, lambda w, p, **kwargs: self.get_randomized_values(w, p, **kwargs))
                         leaf_task.operation.param_source = param_source_name
