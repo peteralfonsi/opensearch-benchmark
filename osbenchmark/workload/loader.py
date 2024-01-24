@@ -961,17 +961,17 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             candidate_return += 1
         return n
 
-    def extract_fields_helper(self, root):
+    def extract_fields_helper(self, root, root_key_value):
         # Recursively call this - if the root is a field name, return that field name. If the root is a leaf node of the tree represented in the params, return None.
         fields = []
         if type(root) == dict and root != {}:
             # check if this one is a field name
             print("root = ", root)
             if ("gt" in root or "gte" in root) and ("lt" in root or "lte" in root):
-                fields.append(root)
+                fields.append(root_key_value)
                 return fields
             for key in root.keys():
-                fields += self.extract_fields_helper(root[key])
+                fields += self.extract_fields_helper(root[key], key)
         else:
             # leaf node
             return fields
@@ -982,7 +982,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         # We could achieve this by passing in the task name to get_randomized_values as a kwarg?
         fields = []
         paths_to_fields = [] # structure within query to reach this field
-        fields = self.extract_fields_helper(params["body"]["query"])
+        fields = self.extract_fields_helper(params["body"]["query"], "query")
 
         print("Extracted fields = ", fields)
         return ["total_amount"] # FIX!!
