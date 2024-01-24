@@ -1065,8 +1065,8 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                             lambda w, p, **kwargs: self.get_randomized_values(w, p, **kwargs))
                         leaf_task.operation.param_source = param_source_name
                         # Generate the right number of standard values for this field, if not already present
-                        for field_name in self.extract_fields(leaf_task.operation.params):
-                            params.generate_standard_values_if_absent(field_name, self.N)
+                        for field_and_path in self.extract_fields_and_paths(leaf_task.operation.params):
+                            params.generate_standard_values_if_absent(field_and_path[0], self.N)
         return input_workload
 
 
