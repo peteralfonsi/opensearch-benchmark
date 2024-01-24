@@ -988,11 +988,11 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         if random.random() < self.rf:
             # Draw a repeated value
             # placeholder
-            input_params = self.set_params(input_params, "total_amount", 0, 1)
+            input_params = self.set_range(input_params, "total_amount", 0, 1)
         else:
             # Draw a random value
             # placeholder
-            input_params = self.set_params(input_params, "total_amount", 0, 3)
+            input_params = self.set_range(input_params, "total_amount", 0, 3)
         print("Params after = ", input_params)
         return input_params # TODO: change the actual values for range queries
 
