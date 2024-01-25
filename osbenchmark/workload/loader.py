@@ -1056,6 +1056,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                     #if leaf_task.operation.type is workload.OperationType.Search: (doesnt work for some reason)
                     if leaf_task.iterations is not None:
                         param_source_name = leaf_task.operation.name + "-randomized"
+                        print("param source name = ", param_source_name)
                         params.register_param_source_for_name(
                             param_source_name,
                             lambda w, p, **kwargs: self.get_randomized_values(w, p, op_name=leaf_task.operation.name, **kwargs))
