@@ -1045,6 +1045,9 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         print("Params after = ", input_params)
         return input_params
 
+    def create_param_source_lambda(self, op_name):
+        return lambda w, p, **kwargs: self.get_randomized_values(w, p, op_name=op_name, **kwargs)
+
     def on_after_load_workload(self, input_workload):
         if not self.randomization_enabled:
             return input_workload
@@ -1059,7 +1062,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                         print("param source name = ", param_source_name)
                         params.register_param_source_for_name(
                             param_source_name,
-                            lambda w, p, **kwargs: self.get_randomized_values(w, p, op_name=kwargs.get("op_name", leaf_task.operation.name), **kwargs))
+                            self.create_param_source_lambda(leaf_task.operation.name))
                         leaf_task.operation.param_source = param_source_name
                         # Generate the right number of standard values for this field, if not already present
                         for field_and_path in self.extract_fields_and_paths(leaf_task.operation.params):
