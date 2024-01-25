@@ -1001,7 +1001,9 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
     def set_range(self, params, fields_and_paths, new_values):
         assert len(fields_and_paths) == len(new_values)
         for field_and_path, new_value in zip(fields_and_paths, new_values):
-            range_section = self.get_dict_from_previous_path(params["body"]["query"], field_and_path[1])[fields_and_paths[0]]
+            field = field_and_path[0]
+            path = field_and_path[1]
+            range_section = self.get_dict_from_previous_path(params["body"]["query"], path)[field]
             # get the section of the query corresponding to the field name
             for greater_than in ["gte", "gt"]:
                 if greater_than in range_section:
