@@ -1016,7 +1016,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
     def get_repeated_value_index(self):
         return self.zipf_cdf_inverse(random.random(), self.H_list)
 
-    def get_randomized_values(self, input_workload, input_params, op_name=None, **kwargs):
+    def get_randomized_values(self, input_workload, input_params, **kwargs):
         repeated_param_name = "repeated" # debug only, remove
         zipf_index_param = "zipf_index" # debug only, remove
 
@@ -1027,7 +1027,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
 
         fields_and_paths = self.extract_fields_and_paths(input_params)
 
-        print("Operation name = ", op_name)
+        print("Operation name = ", kwargs["op_name"])
 
         if random.random() < self.rf:
             # Draw a potentially repeated value from the generated standard values
@@ -1059,7 +1059,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                         print("param source name = ", param_source_name)
                         params.register_param_source_for_name(
                             param_source_name,
-                            lambda w, p, **kwargs: self.get_randomized_values(w, p, op_name=leaf_task.operation.name, **kwargs))
+                            lambda w, p, **kwargs: self.get_randomized_values(w, p, op_name=kwargs.get("op_name", leaf_task.operation.name), **kwargs))
                         leaf_task.operation.param_source = param_source_name
                         # Generate the right number of standard values for this field, if not already present
                         for field_and_path in self.extract_fields_and_paths(leaf_task.operation.params):
