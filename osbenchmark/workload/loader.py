@@ -1027,7 +1027,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
 
         fields_and_paths = self.extract_fields_and_paths(input_params)
 
-        print("Operation name = ", kwargs["operation_name"])
+        print("Operation name = ", kwargs["op_name"])
 
         if random.random() < self.rf:
             # Draw a potentially repeated value from the generated standard values
