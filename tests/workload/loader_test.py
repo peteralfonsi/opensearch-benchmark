@@ -3558,6 +3558,7 @@ class WorkloadProcessorRegistryTests(TestCase):
         expected_defaults = [
             loader.TaskFilterWorkloadProcessor,
             loader.TestModeWorkloadProcessor,
+            loader.QueryRandomizerWorkloadProcessor,
             loader.DefaultWorkloadPreparator
         ]
         actual_defaults = [proc.__class__ for proc in tpr.processors]
@@ -3573,6 +3574,7 @@ class WorkloadProcessorRegistryTests(TestCase):
         expected_processors = [
             loader.TaskFilterWorkloadProcessor,
             loader.TestModeWorkloadProcessor,
+            loader.QueryRandomizerWorkloadProcessor,
             MyMockWorkloadProcessor
         ]
         actual_processors = [proc.__class__ for proc in tpr.processors]
@@ -3589,6 +3591,7 @@ class WorkloadProcessorRegistryTests(TestCase):
         expected_processors = [
             loader.TaskFilterWorkloadProcessor,
             loader.TestModeWorkloadProcessor,
+            loader.QueryRandomizerWorkloadProcessor,
             MyMockWorkloadProcessor,
             loader.DefaultWorkloadPreparator
         ]

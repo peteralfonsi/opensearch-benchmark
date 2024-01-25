@@ -112,7 +112,7 @@ def get_standard_value(op_name, field_name, i):
     except KeyError:
         raise Exception("No standard values generated for operation {}, field {}".format(op_name, field_name))
     except IndexError:
-        raise Exception("Standard value index {} out of range for operation{}, field name {} ({} values total)".format(i, op_name, field_name, len(__STANDARD_VALUES[field_name])))
+        raise Exception("Standard value index {} out of range for operation{}, field name {} ({} values total)".format(i, op_name, field_name, len(__STANDARD_VALUES[op_name][field_name])))
 
 
 # only intended for tests
