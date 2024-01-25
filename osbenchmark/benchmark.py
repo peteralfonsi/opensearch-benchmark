@@ -561,12 +561,12 @@ def create_arg_parser():
         action="store_true")
     test_execution_parser.add_argument(
         "--randomization-rf",
-        help="The repeat_frequency for query randomization. Ignored if randomization is off (default: 0.3).",
-        default=0.3)
+        help="The repeat_frequency for query randomization. Ignored if randomization is off (default: {workload.loader.QueryRandomizerWorkloadProcessor.DEFAULT_RF}).",
+        default=workload.loader.QueryRandomizerWorkloadProcessor.DEFAULT_RF)
     test_execution_parser.add_argument(
         "--randomization-n",
-        help="The number of standard values to generate for each field for query randomization. Ignored if randomization is off (default: 5000).",
-        default=5000)
+        help="The number of standard values to generate for each field for query randomization. Ignored if randomization is off (default: {workload.loader.QueryRandomizerWorkloadProcessor.DEFAULT_N}).",
+        default=workload.loader.QueryRandomizerWorkloadProcessor.DEFAULT_N)
 
     ###############################################################################
     #
