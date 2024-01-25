@@ -1011,6 +1011,8 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             for less_than in ["lte", "lt"]:
                 if less_than in range_section:
                     range_section[less_than] = new_value["lte"]
+            if "format" in new_values:
+                range_section["format"] = new_values["format"]
         return params
 
     def get_repeated_value_index(self):
@@ -1032,13 +1034,13 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         if random.random() < self.rf:
             # Draw a potentially repeated value from the generated standard values
             index = self.get_repeated_value_index()
-            new_values = [params.get_standard_value(field_and_path[0], index) for field_and_path in fields_and_paths] # Use the same index for all fields in one query
+            new_values = [params.get_standard_value(kwargs["op_name"], field_and_path[0], index) for field_and_path in fields_and_paths] # Use the same index for all fields in one query
             input_params = self.set_range(input_params, fields_and_paths, new_values)
             input_params[repeated_param_name] = True
             input_params[zipf_index_param] = index
         else:
             # Draw a new random value
-            new_values = [params.get_standard_value_source(field_and_path[0])() for field_and_path in fields_and_paths]
+            new_values = [params.get_standard_value_source(kwargs["op_name"], field_and_path[0])() for field_and_path in fields_and_paths]
             input_params = self.set_range(input_params, fields_and_paths, new_values)
             input_params[repeated_param_name] = False
             input_params[zipf_index_param] = None
@@ -1046,6 +1048,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         return input_params
 
     def create_param_source_lambda(self, op_name):
+        # This function makes the op_name behave correctly
         return lambda w, p, **kwargs: self.get_randomized_values(w, p, op_name=op_name, **kwargs)
 
     def on_after_load_workload(self, input_workload):
@@ -1058,15 +1061,16 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                     # Check that something is a search task??
                     #if leaf_task.operation.type is workload.OperationType.Search: (doesnt work for some reason)
                     if leaf_task.iterations is not None:
-                        param_source_name = leaf_task.operation.name + "-randomized"
+                        op_name = leaf_task.operation.name
+                        param_source_name = op_name + "-randomized"
                         print("param source name = ", param_source_name)
                         params.register_param_source_for_name(
                             param_source_name,
-                            self.create_param_source_lambda(leaf_task.operation.name))
+                            self.create_param_source_lambda(op_name))
                         leaf_task.operation.param_source = param_source_name
                         # Generate the right number of standard values for this field, if not already present
                         for field_and_path in self.extract_fields_and_paths(leaf_task.operation.params):
-                            params.generate_standard_values_if_absent(field_and_path[0], self.N)
+                            params.generate_standard_values_if_absent(op_name, field_and_path[0], self.N)
         return input_workload
 
 class CompleteWorkloadParams:
@@ -1245,9 +1249,9 @@ class WorkloadPluginReader:
         if self.workload_processor_registry:
             self.workload_processor_registry(workload_processor)
 
-    def register_standard_value_source(self, field_name, standard_value_source):
-        # Define a value source for parameters for a given task name and field name, for use in randomization
-        params.register_standard_value_source(field_name, standard_value_source) # TODO: Should this live in params?
+    def register_standard_value_source(self, op_name, field_name, standard_value_source):
+        # Define a value source for parameters for a given operation name and field name, for use in randomization
+        params.register_standard_value_source(op_name, field_name, standard_value_source) # TODO: Should this live in params?
 
     @property
     def meta_data(self):
