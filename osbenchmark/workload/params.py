@@ -576,6 +576,7 @@ class SearchParamSource(ParamSource):
     def params(self):
         return self.query_params
 
+
 class IndexIdConflict(Enum):
     """
     Determines which id conflicts to simulate during indexing.

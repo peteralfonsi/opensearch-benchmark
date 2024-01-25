@@ -1023,9 +1023,11 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         # The queries as listed in operations/default.json don't have the index param,
         # unlike the custom ones you would specify in workload.py, so we have to add them ourselves
         if not "index" in input_params:
-            input_params["index"] = params.get_target(input_workload, input_params) #"nyc_taxis" # TODO: Not sure if this is the right way?
+            input_params["index"] = params.get_target(input_workload, input_params)
 
         fields_and_paths = self.extract_fields_and_paths(input_params)
+
+        print("Operation name = ", kwargs["operation_name"])
 
         if random.random() < self.rf:
             # Draw a potentially repeated value from the generated standard values
@@ -1056,7 +1058,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                         param_source_name = leaf_task.operation.name + "-randomized"
                         params.register_param_source_for_name(
                             param_source_name,
-                            lambda w, p, **kwargs: self.get_randomized_values(w, p, **kwargs))
+                            lambda w, p, **kwargs: self.get_randomized_values(w, p, op_name=leaf_task.operation.name, **kwargs))
                         leaf_task.operation.param_source = param_source_name
                         # Generate the right number of standard values for this field, if not already present
                         for field_and_path in self.extract_fields_and_paths(leaf_task.operation.params):
@@ -1111,7 +1113,7 @@ class WorkloadFileReader:
         :param mapping_dir: The directory where the mapping files for this workload are stored locally.
         :return: A corresponding workload instance if the workload file is valid.
         """
-        print("Called WorkloadFileReader.read() with workload_name={}, workload_spec_file={}, mapping_dir={}".format(workload_name, workload_spec_file, mapping_dir))
+
         self.logger.info("Reading workload specification file [%s].", workload_spec_file)
         # render the workload to a temporary file instead of dumping it into the logs. It is easier to check for error messages
         # involving lines numbers and it also does not bloat Benchmark's log file so much.
@@ -1239,8 +1241,8 @@ class WorkloadPluginReader:
         if self.workload_processor_registry:
             self.workload_processor_registry(workload_processor)
 
-    def register_standard_value_source(self, field_name, standard_value_source):
-        # Define a value source for parameters for a given field, for use in randomization
+    def register_standard_value_source(self, task_name, field_name, standard_value_source):
+        # Define a value source for parameters for a given task name and field name, for use in randomization
         params.register_standard_value_source(field_name, standard_value_source) # TODO: Should this live in params?
 
     @property
@@ -1265,7 +1267,6 @@ class WorkloadSpecificationReader:
         self.logger = logging.getLogger(__name__)
 
     def __call__(self, workload_name, workload_specification, mapping_dir):
-        print("Called WorkloadSpecificationReader with workload_name = {}, workload_specification={}, mapping_dir={}".format(workload_name, workload_specification, mapping_dir))
         self.name = workload_name
         description = self._r(workload_specification, "description", mandatory=False, default_value="")
 
