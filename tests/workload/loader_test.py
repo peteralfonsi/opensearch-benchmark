@@ -1857,38 +1857,24 @@ class WorkloadRandomizationTests(TestCase):
             return saved_values[field_name]
 
         workload = self.get_simple_workload(op_name, original_query_op, index_name)
-        cfg = config.Config()
-        cfg.add(config.Scope.application, "workload", "randomization.rf", 1.0) # first test where we always draw a saved value, not a new random one
-        processor = loader.QueryRandomizerWorkloadProcessor(cfg)
-        self.assertAlmostEqual(processor.rf, 1.0)
-        modified_params = processor.get_randomized_values(workload, original_query_op, op_name=op_name,
-                                                          get_standard_value=dummy_get_standard_value,
-                                                          get_standard_value_source=dummy_get_standard_value_source)
-        new_range = modified_params["body"]["query"]["bool"]["filter"]["range"][field_name]
-        new_range_2 = modified_params["body"]["query"]["bool"]["filter"]["must"][0]["range"][field_name_2]
-        print("NEW RANGE RF = 1:", new_range)
-        self.assertEqual(new_range["lt"], saved_values[field_name]["lte"]) # Note it should keep whichever of lt/lte it found in the original query
-        self.assertEqual(new_range["gte"], saved_values[field_name]["gte"])
-        self.assertEqual(new_range_2["lte"], saved_values[field_name_2]["lte"]) # Note it should keep whichever of lt/lte it found in the original query
-        self.assertEqual(new_range_2["gte"], saved_values[field_name_2]["gte"])
-        self.assertEqual(new_range_2["format"], saved_values[field_name_2]["format"])
-        self.assertEqual(modified_params["index"], index_name)
 
-        cfg = config.Config()
-        cfg.add(config.Scope.application, "workload", "randomization.rf", 0.0) # now test where we always generate a new random value from the source function
-        processor = loader.QueryRandomizerWorkloadProcessor(cfg)
-        self.assertAlmostEqual(processor.rf, 0.0)
-        modified_params = processor.get_randomized_values(workload, original_query_op, op_name=op_name,
-                                                          get_standard_value=dummy_get_standard_value,
-                                                          get_standard_value_source=dummy_get_standard_value_source)
-        new_range = modified_params["body"]["query"]["bool"]["filter"]["range"][field_name]
-        new_range_2 = modified_params["body"]["query"]["bool"]["filter"]["must"][0]["range"][field_name_2]
-        self.assertEqual(new_range["lt"], new_values[field_name]["lte"])
-        self.assertEqual(new_range["gte"], new_values[field_name]["gte"])
-        self.assertEqual(new_range_2["lte"], new_values[field_name_2]["lte"])
-        self.assertEqual(new_range_2["gte"], new_values[field_name_2]["gte"])
-        self.assertEqual(new_range_2["format"], new_values[field_name_2]["format"])
-        self.assertEqual(modified_params["index"], index_name)
+        for rf, expected_dict in zip([1.0, 0.0], [saved_values, new_values]):
+            cfg = config.Config()
+            cfg.add(config.Scope.application, "workload", "randomization.rf", rf) # first test where we always draw a saved value, not a new random one
+            processor = loader.QueryRandomizerWorkloadProcessor(cfg)
+            self.assertAlmostEqual(processor.rf, rf)
+            modified_params = processor.get_randomized_values(workload, original_query_op, op_name=op_name,
+                                                            get_standard_value=dummy_get_standard_value,
+                                                            get_standard_value_source=dummy_get_standard_value_source)
+            new_range = modified_params["body"]["query"]["bool"]["filter"]["range"][field_name]
+            new_range_2 = modified_params["body"]["query"]["bool"]["filter"]["must"][0]["range"][field_name_2]
+            print("NEW RANGE RF = 1:", new_range)
+            self.assertEqual(new_range["lt"], expected_dict[field_name]["lte"]) # Note it should keep whichever of lt/lte it found in the original query
+            self.assertEqual(new_range["gte"], expected_dict[field_name]["gte"])
+            self.assertEqual(new_range_2["lte"], expected_dict[field_name_2]["lte"]) # Note it should keep whichever of lt/lte it found in the original query
+            self.assertEqual(new_range_2["gte"], expected_dict[field_name_2]["gte"])
+            self.assertEqual(new_range_2["format"], expected_dict[field_name_2]["format"])
+            self.assertEqual(modified_params["index"], index_name)
 
     '''def test_on_after_load_workload(self):
         # NOT DONE
