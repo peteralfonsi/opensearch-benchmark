@@ -971,7 +971,6 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         # Recursively call this - if the root is a field name, return that field name. If the root is a leaf node of the tree represented in the params, return None.
         fields = [] # pairs of (field, path_to_field)
         curr = self.get_dict_from_previous_path(root, current_path)
-        print("Currently scanning {}".format(curr))
         if type(curr) is dict and curr != {}:
             if len(current_path) > 0 and current_path[-1] == "range":
                 for key in curr.keys():
@@ -996,7 +995,11 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         # Return pairs of (field, path_to_field)
         # TODO: Maybe only do this the first time, and assume for a given task, the same query structure is used.
         # We could achieve this by passing in the task name to get_randomized_values as a kwarg?
-        fields_and_paths = self.extract_fields_helper(params["body"]["query"], [])
+        try:
+            root = params["body"]["query"]
+        except KeyError:
+            raise exceptions.SystemSetupError("Cannot extract range query fields from these params, missing params[\"body\"][\"query\"]")
+        fields_and_paths = self.extract_fields_helper(root, [])
 
         print("Extracted fields = ", fields_and_paths)
         return fields_and_paths

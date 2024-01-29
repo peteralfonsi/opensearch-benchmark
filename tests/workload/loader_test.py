@@ -1768,6 +1768,11 @@ class WorkloadRandomizationTests(TestCase):
             ]
         self.assertEqual(multiple_nested_range_query_result, multiple_nested_range_query_expected)
 
+        with self.assertRaises(exceptions.SystemSetupError) as ctx:
+            empty_result = processor.extract_fields_and_paths({"body":{"contents":["not_a_valid_query"]}})
+            self.assertEqual("Cannot extract range query fields from these params, missing params[\"body\"][\"query\"]",
+                         ctx.exception.args[0])
+
 
 # pylint: disable=too-many-public-methods
 class WorkloadSpecificationReaderTests(TestCase):
