@@ -1807,9 +1807,17 @@ class WorkloadRandomizationTests(TestCase):
     def test_get_randomized_values(self):
         op_name = "dummy_operation"
         field_name = "dummy_field"
+        field_name_2 = "dummy_field_2"
         index_name = "dummy_index"
-        saved_value = {"lte":40, "gte":30}
-        new_value = {"lte":41, "gte":31} # make these different to be able to distinguish when we generate a new value vs draw an "existing" one
+        saved_values = {field_name:{"lte":40, "gte":30},
+                         field_name_2:{"lte":"06/06/2016", "gte":"05/05/2016", "format":"dd/MM/yyyy"}}
+        new_values = {field_name:{"lte":41, "gte":31},
+                      field_name_2:{"lte":"04/04/2016", "gte":"03/03/2016", "format":"dd/MM/yyyy"}}
+                        # make these different to be able to distinguish when we generate a new value vs draw an "existing" one
+        sources = {
+            field_name:lambda : new_values[field_name],
+            field_name_2:lambda : new_values[field_name_2]
+        } # The actual source functions for the two fields, which in a real application would be defined in the workload's workload.py and involve some randomization
 
         original_query_op = {
             "name": op_name,
@@ -1824,20 +1832,29 @@ class WorkloadRandomizationTests(TestCase):
                                     "lt": 50,
                                     "gte": 0
                                 }
-                            }
+                            },
+                            "must": [
+                                {
+                                    "range": {
+                                        field_name_2: {
+                                            "gte": "01/01/2015",
+                                            "lte": "21/01/2015",
+                                            "format": "dd/MM/yyyy"
+                                        }
+                                    }
+                                }
+                            ]
+
                         }
                     }
                 }
             }
         }
 
-        def standard_value_source(): # The actual source, which in a real application would be defined in the workload's workload.py
-            return new_value
-
         def dummy_get_standard_value_source(op_name, field_name): # Passed to the processor, to be able to find the standard value sources for all ops/fields.
-            return standard_value_source
+            return sources[field_name]
         def dummy_get_standard_value(op_name, field_name, index):# Passed to the processor, to be able to retrive the saved standard values for all ops/fields.
-            return saved_value
+            return saved_values[field_name]
 
         workload = self.get_simple_workload(op_name, original_query_op, index_name)
         cfg = config.Config()
@@ -1847,9 +1864,14 @@ class WorkloadRandomizationTests(TestCase):
         modified_params = processor.get_randomized_values(workload, original_query_op, op_name=op_name,
                                                           get_standard_value=dummy_get_standard_value,
                                                           get_standard_value_source=dummy_get_standard_value_source)
-        new_range = modified_params["body"]["query"]["bool"]["filter"]["range"]
-        self.assertEqual(new_range[field_name]["lt"], saved_value["lte"]) # Note it should keep whichever of lt/lte it found in the original query
-        self.assertEqual(new_range[field_name]["gte"], saved_value["gte"])
+        new_range = modified_params["body"]["query"]["bool"]["filter"]["range"][field_name]
+        new_range_2 = modified_params["body"]["query"]["bool"]["filter"]["must"][0]["range"][field_name_2]
+        print("NEW RANGE RF = 1:", new_range)
+        self.assertEqual(new_range["lt"], saved_values[field_name]["lte"]) # Note it should keep whichever of lt/lte it found in the original query
+        self.assertEqual(new_range["gte"], saved_values[field_name]["gte"])
+        self.assertEqual(new_range_2["lte"], saved_values[field_name_2]["lte"]) # Note it should keep whichever of lt/lte it found in the original query
+        self.assertEqual(new_range_2["gte"], saved_values[field_name_2]["gte"])
+        self.assertEqual(new_range_2["format"], saved_values[field_name_2]["format"])
         self.assertEqual(modified_params["index"], index_name)
 
         cfg = config.Config()
@@ -1859,9 +1881,13 @@ class WorkloadRandomizationTests(TestCase):
         modified_params = processor.get_randomized_values(workload, original_query_op, op_name=op_name,
                                                           get_standard_value=dummy_get_standard_value,
                                                           get_standard_value_source=dummy_get_standard_value_source)
-        new_range = modified_params["body"]["query"]["bool"]["filter"]["range"]
-        self.assertEqual(new_range[field_name]["lt"], new_value["lte"])
-        self.assertEqual(new_range[field_name]["gte"], new_value["gte"])
+        new_range = modified_params["body"]["query"]["bool"]["filter"]["range"][field_name]
+        new_range_2 = modified_params["body"]["query"]["bool"]["filter"]["must"][0]["range"][field_name_2]
+        self.assertEqual(new_range["lt"], new_values[field_name]["lte"])
+        self.assertEqual(new_range["gte"], new_values[field_name]["gte"])
+        self.assertEqual(new_range_2["lte"], new_values[field_name_2]["lte"])
+        self.assertEqual(new_range_2["gte"], new_values[field_name_2]["gte"])
+        self.assertEqual(new_range_2["format"], new_values[field_name_2]["format"])
         self.assertEqual(modified_params["index"], index_name)
 
     '''def test_on_after_load_workload(self):
