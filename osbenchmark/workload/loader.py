@@ -1024,7 +1024,10 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
     def get_repeated_value_index(self):
         return self.zipf_cdf_inverse(random.random(), self.H_list)
 
-    def get_randomized_values(self, input_workload, input_params, **kwargs):
+    def get_randomized_values(self, input_workload, input_params,
+                              get_standard_value=params.get_standard_value,
+                              get_standard_value_source=params.get_standard_value_source, # Made these configurable for simpler unit tests
+                              **kwargs):
         repeated_param_name = "repeated" # debug only, remove
         zipf_index_param = "zipf_index" # debug only, remove
 
@@ -1040,13 +1043,13 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         if random.random() < self.rf:
             # Draw a potentially repeated value from the generated standard values
             index = self.get_repeated_value_index()
-            new_values = [params.get_standard_value(kwargs["op_name"], field_and_path[0], index) for field_and_path in fields_and_paths] # Use the same index for all fields in one query
+            new_values = [get_standard_value(kwargs["op_name"], field_and_path[0], index) for field_and_path in fields_and_paths] # Use the same index for all fields in one query
             input_params = self.set_range(input_params, fields_and_paths, new_values)
             input_params[repeated_param_name] = True
             input_params[zipf_index_param] = index
         else:
             # Draw a new random value
-            new_values = [params.get_standard_value_source(kwargs["op_name"], field_and_path[0])() for field_and_path in fields_and_paths]
+            new_values = [get_standard_value_source(kwargs["op_name"], field_and_path[0])() for field_and_path in fields_and_paths]
             input_params = self.set_range(input_params, fields_and_paths, new_values)
             input_params[repeated_param_name] = False
             input_params[zipf_index_param] = None
