@@ -1773,8 +1773,104 @@ class WorkloadRandomizationTests(TestCase):
             self.assertEqual("Cannot extract range query fields from these params, missing params[\"body\"][\"query\"]",
                          ctx.exception.args[0])
 
+    def get_simple_workload(self, op_name, original_query_op, index_name):
+        # Modified from test_filters_tasks
+        workload_specification = {
+            "description": "description for unit test",
+            "indices": [{"name": index_name, "auto-managed": False}],
+            "operations": [
+                {
+                    "name": "create-index",
+                    "operation-type": "create-index"
+                },
+                original_query_op,
+            ],
+            "test_procedures": [
+                {
+                    "name": "default-test_procedure",
+                    "schedule": [
+                        {
+                            "operation": "create-index"
+                        },
+                        {
+                            "name": "dummy-task-name",
+                            "operation": op_name,
+                        }
+                    ]
+                }
+            ]
+        }
+        reader = loader.WorkloadSpecificationReader()
+        full_workload = reader("unittest", workload_specification, "/mappings")
+        return full_workload
+
     def test_get_randomized_values(self):
-        
+        op_name = "dummy_operation"
+        field_name = "dummy_field"
+        index_name = "dummy_index"
+        saved_value = {"lte":40, "gte":30}
+        new_value = {"lte":41, "gte":31} # make these different to be able to distinguish when we generate a new value vs draw an "existing" one
+
+        original_query_op = {
+            "name": op_name,
+            "operation-type": "search",
+            "body": {
+                "size": 0,
+                "query": {
+                    "bool": {
+                        "filter": {
+                            "range": {
+                                field_name: {
+                                    "lt": 50,
+                                    "gte": 0
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        def standard_value_source(): # The actual source, which in a real application would be defined in the workload's workload.py
+            return new_value
+
+        def dummy_get_standard_value_source(op_name, field_name): # Passed to the processor, to be able to find the standard value sources for all ops/fields.
+            return standard_value_source
+        def dummy_get_standard_value(op_name, field_name, index):# Passed to the processor, to be able to retrive the saved standard values for all ops/fields.
+            return saved_value
+
+        workload = self.get_simple_workload(op_name, original_query_op, index_name)
+        cfg = config.Config()
+        cfg.add(config.Scope.application, "workload", "randomization.rf", 1.0) # first test where we always draw a saved value, not a new random one
+        processor = loader.QueryRandomizerWorkloadProcessor(cfg)
+        self.assertAlmostEqual(processor.rf, 1.0)
+        modified_params = processor.get_randomized_values(workload, original_query_op, op_name=op_name,
+                                                          get_standard_value=dummy_get_standard_value,
+                                                          get_standard_value_source=dummy_get_standard_value_source)
+        new_range = modified_params["body"]["query"]["bool"]["filter"]["range"]
+        self.assertEqual(new_range[field_name]["lt"], saved_value["lte"]) # Note it should keep whichever of lt/lte it found in the original query
+        self.assertEqual(new_range[field_name]["gte"], saved_value["gte"])
+        self.assertEqual(modified_params["index"], index_name)
+
+        cfg = config.Config()
+        cfg.add(config.Scope.application, "workload", "randomization.rf", 0.0) # now test where we always generate a new random value from the source function
+        processor = loader.QueryRandomizerWorkloadProcessor(cfg)
+        self.assertAlmostEqual(processor.rf, 0.0)
+        modified_params = processor.get_randomized_values(workload, original_query_op, op_name=op_name,
+                                                          get_standard_value=dummy_get_standard_value,
+                                                          get_standard_value_source=dummy_get_standard_value_source)
+        new_range = modified_params["body"]["query"]["bool"]["filter"]["range"]
+        self.assertEqual(new_range[field_name]["lt"], new_value["lte"])
+        self.assertEqual(new_range[field_name]["gte"], new_value["gte"])
+        self.assertEqual(modified_params["index"], index_name)
+
+    '''def test_on_after_load_workload(self):
+        # NOT DONE
+        cfg = config.Config()
+        processor = loader.QueryRandomizerWorkloadProcessor(cfg)
+        # Do nothing with default config
+        self.assertEqual(original_query, processor.on_after_load_workload())'''
+
 
 
 # pylint: disable=too-many-public-methods
