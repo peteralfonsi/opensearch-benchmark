@@ -971,19 +971,22 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         # Recursively call this - if the root is a field name, return that field name. If the root is a leaf node of the tree represented in the params, return None.
         fields = [] # pairs of (field, path_to_field)
         curr = self.get_dict_from_previous_path(root, current_path)
+        print("Currently scanning {}".format(curr))
         if type(curr) is dict and curr != {}:
             if len(current_path) > 0 and current_path[-1] == "range":
                 for key in curr.keys():
                     if type(curr[key]) == dict:
                         if ("gte" in curr[key] or "gt" in curr[key]) and ("lte" in curr[key] or "lt" in curr[key]):
                             fields.append((key, current_path))
-                            #print("Added {} to fields".format(key))
                 return fields
             else:
                 for key in curr.keys():
-                    #print("curr = {}, root = {}, next key = {}".format(curr, root, key))
                     fields += self.extract_fields_helper(root, current_path + [key])
                 return fields
+        elif type(curr) is list and curr != []:
+            for i, value in enumerate(curr):
+                fields += self.extract_fields_helper(root, current_path + [i])
+            return fields
         else:
             # leaf node
             return []

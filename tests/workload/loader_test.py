@@ -1682,6 +1682,92 @@ class WorkloadFilterTests(TestCase):
         schedule = filtered.test_procedures[0].schedule
         self.assertEqual(expected_schedule, schedule)
 
+class WorkloadRandomizationTests(TestCase):
+    def test_range_finding_function(self):
+        cfg = config.Config()
+        processor = loader.QueryRandomizerWorkloadProcessor(cfg)
+        single_range_query = {
+            "name": "distance_amount_agg",
+            "operation-type": "search",
+            "body": {
+                "size": 0,
+                "query": {
+                "bool": {
+                    "filter": {
+                    "range": {
+                        "trip_distance": {
+                        "lt": 50,
+                        "gte": 0
+                        }
+                    }
+                    }
+                }
+                }
+            }
+        }
+        single_range_query_result = processor.extract_fields_and_paths(single_range_query)
+        single_range_query_expected = [("trip_distance", ["bool", "filter", "range"])]
+        self.assertEqual(single_range_query_result, single_range_query_expected)
+
+        multiple_nested_range_query = {
+            "name": "date_histogram_agg",
+            "operation-type": "search",
+            "body": {
+                "size": 0,
+                "query": {
+                    "range": {
+                        "dropoff_datetime": {
+                            "gte": "01/01/2015",
+                            "lte": "21/01/2015",
+                            "format": "dd/MM/yyyy"
+                        }
+                },
+                "bool": {
+                    "filter": {
+                        "range": {
+                            "dummy_field": {
+                                "lte": 50,
+                                "gt": 0
+                            }
+                        }
+                    },
+                    "must": [
+                        {
+                            "range": {
+                                "dummy_field_2": {
+                                    "gte": "1998-05-01T00:00:00Z",
+                                    "lt": "1998-05-02T00:00:00Z"
+                                }
+                            }
+                        },
+                        {
+                            "match": {
+                            "status": "400"
+                            }
+                        },
+                        {
+                            "range": {
+                                "dummy_field_3": {
+                                    "gt": 10,
+                                    "lt": 11
+                                }
+                            }
+                        }
+                    ]
+                }
+                }
+            }
+        }
+        multiple_nested_range_query_result = processor.extract_fields_and_paths(multiple_nested_range_query)
+        print("Multi result: ", multiple_nested_range_query_result)
+        multiple_nested_range_query_expected = [
+            ("dropoff_datetime", ["range"]),
+            ("dummy_field", ["bool", "filter", "range"]),
+            ("dummy_field_2", ["bool", "must", 0, "range"]),
+            ("dummy_field_3", ["bool", "must", 2, "range"])
+            ]
+        self.assertEqual(multiple_nested_range_query_result, multiple_nested_range_query_expected)
+
 
 # pylint: disable=too-many-public-methods
 class WorkloadSpecificationReaderTests(TestCase):
