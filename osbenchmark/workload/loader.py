@@ -1056,11 +1056,16 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         print("Params after = ", input_params)
         return input_params
 
-    def create_param_source_lambda(self, op_name):
+    def create_param_source_lambda(self, op_name, get_standard_value, get_standard_value_source):
         # This function makes the op_name behave correctly
-        return lambda w, p, **kwargs: self.get_randomized_values(w, p, op_name=op_name, **kwargs)
+        return lambda w, p, **kwargs: self.get_randomized_values(w, p,
+                                                                 get_standard_value=get_standard_value,
+                                                                 get_standard_value_source=get_standard_value_source,
+                                                                 op_name=op_name, **kwargs)
 
-    def on_after_load_workload(self, input_workload):
+    def on_after_load_workload(self, input_workload,
+                               get_standard_value=params.get_standard_value,
+                               get_standard_value_source=params.get_standard_value_source): # Made these configurable for simpler unit tests):
         if not self.randomization_enabled:
             return input_workload
         print("Randomizing queries!!")
@@ -1075,7 +1080,8 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                         print("param source name = ", param_source_name)
                         params.register_param_source_for_name(
                             param_source_name,
-                            self.create_param_source_lambda(op_name))
+                            self.create_param_source_lambda(op_name, get_standard_value=get_standard_value,
+                                                            get_standard_value_source=get_standard_value_source))
                         leaf_task.operation.param_source = param_source_name
                         # Generate the right number of standard values for this field, if not already present
                         for field_and_path in self.extract_fields_and_paths(leaf_task.operation.params):

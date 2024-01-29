@@ -1773,6 +1773,9 @@ class WorkloadRandomizationTests(TestCase):
             self.assertEqual("Cannot extract range query fields from these params, missing params[\"body\"][\"query\"]",
                          ctx.exception.args[0])
 
+    def test_get_randomized_values(self):
+        
+
 
 # pylint: disable=too-many-public-methods
 class WorkloadSpecificationReaderTests(TestCase):
