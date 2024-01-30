@@ -926,7 +926,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
     DEFAULT_N = 5000
     def __init__(self, cfg):
         self.randomization_enabled = cfg.opts("workload", "randomization.enabled", mandatory=False, default_value=False)
-        self.rf = cfg.opts("workload", "randomization.rf", mandatory=False, default_value=self.DEFAULT_RF)
+        self.rf = float(cfg.opts("workload", "randomization.rf", mandatory=False, default_value=self.DEFAULT_RF))
         self.logger = logging.getLogger(__name__)
         self.N = int(cfg.opts("workload", "randomization.n", mandatory=False, default_value=self.DEFAULT_N))
         self.zipf_alpha = 1
@@ -1082,6 +1082,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             generate_new_standard_values = True
 
         for test_procedure in input_workload.test_procedures:
+            print("test procedures = ", input_workload.test_procedures)
             for task in test_procedure.schedule:
                 for leaf_task in task:
                     try:
