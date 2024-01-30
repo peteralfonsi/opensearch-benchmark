@@ -969,7 +969,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
 
     def extract_fields_helper(self, root, current_path):
         # Recursively called to find the location of ranges in an OpenSearch range query.
-        # Return the field and the current path if we're currently scanning the field name in a range query, otherwise return an empty list. 
+        # Return the field and the current path if we're currently scanning the field name in a range query, otherwise return an empty list.
         fields = [] # pairs of (field, path_to_field)
         curr = self.get_dict_from_previous_path(root, current_path)
         if type(curr) is dict and curr != {}:
@@ -1042,7 +1042,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         print("Operation name = ", kwargs["op_name"])
 
         if random.random() < self.rf:
-            # Draw a potentially repeated value from the generated standard values
+            # Draw a potentially repeated value from the saved standard values
             index = self.get_repeated_value_index()
             new_values = [get_standard_value(kwargs["op_name"], field_and_path[0], index) for field_and_path in fields_and_paths]
             # Use the same index for all fields in one query, otherwise the probability of repeats in a multi-field query would be very low
@@ -1050,7 +1050,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             input_params[repeated_param_name] = True
             input_params[zipf_index_param] = index
         else:
-            # Draw a new random value
+            # Generate a new random value, from the standard value source function
             new_values = [get_standard_value_source(kwargs["op_name"], field_and_path[0])() for field_and_path in fields_and_paths]
             input_params = self.set_range(input_params, fields_and_paths, new_values)
             input_params[repeated_param_name] = False

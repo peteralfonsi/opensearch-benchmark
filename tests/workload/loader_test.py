@@ -1743,7 +1743,6 @@ class WorkloadRandomizationTests(TestCase):
                                         }
                                     }
                                 ]
-
                             }
                         }
                     }
@@ -1767,7 +1766,7 @@ class WorkloadRandomizationTests(TestCase):
             }
 
         def get_simple_workload(self):
-        # Modified from test_filters_tasks
+            # Modified from test_filters_tasks
             workload_specification = {
                 "description": "description for unit test",
                 "indices": [{"name": self.index_name, "auto-managed": False}],
