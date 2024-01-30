@@ -1082,7 +1082,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             generate_new_standard_values = True
 
         for test_procedure in input_workload.test_procedures:
-            print("test procedure schedule = ", test_procedure.schedule)
+            print("test procedure name = {}, is default = {}, schedule value = ".format(test_procedure.name, test_procedure.default, test_procedure.schedule))
             for task in test_procedure.schedule:
                 for leaf_task in task:
                     try:
