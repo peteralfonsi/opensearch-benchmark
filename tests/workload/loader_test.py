@@ -1944,8 +1944,8 @@ class WorkloadRandomizationTests(TestCase):
         processor = loader.QueryRandomizerWorkloadProcessor(cfg)
         # Do nothing with default config as randomization.enabled is false
         helper = self.StandardValueHelper()
-        workload = helper.get_simple_workload()
-        self.assertEqual(repr(workload), repr(processor.on_after_load_workload(workload, get_standard_value=helper.get_standard_value,
+        input_workload = helper.get_simple_workload()
+        self.assertEqual(repr(input_workload), repr(processor.on_after_load_workload(input_workload, get_standard_value=helper.get_standard_value,
                                                             get_standard_value_source=helper.get_standard_value_source)))
         # It seems that comparing the workloads directly will incorrectly call them equal, even if they have differences,
         # so compare their string representations instead
@@ -1956,9 +1956,18 @@ class WorkloadRandomizationTests(TestCase):
         self.assertEqual(processor.randomization_enabled, True)
         self.assertEqual(processor.N, loader.QueryRandomizerWorkloadProcessor.DEFAULT_N)
         self.assertEqual(processor.rf, loader.QueryRandomizerWorkloadProcessor.DEFAULT_RF)
-        workload = helper.get_simple_workload()
-        self.assertNotEqual(repr(workload), repr(processor.on_after_load_workload(workload, get_standard_value=helper.get_standard_value,
+        input_workload = helper.get_simple_workload()
+        self.assertNotEqual(repr(input_workload), repr(processor.on_after_load_workload(input_workload, get_standard_value=helper.get_standard_value,
                                                             get_standard_value_source=helper.get_standard_value_source)))
+        for test_procedure in input_workload.test_procedures:
+            for task in test_procedure.schedule:
+                for leaf_task in task:
+                    try:
+                        op_type = workload.OperationType.from_hyphenated_string(leaf_task.operation.type)
+                    except KeyError:
+                        op_type = None
+                    if op_type == workload.OperationType.Search:
+                        self.assertIsNotNone(leaf_task.operation.param_source)
 
 
 
