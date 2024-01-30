@@ -1954,7 +1954,9 @@ class WorkloadRandomizationTests(TestCase):
         processor = loader.QueryRandomizerWorkloadProcessor(cfg)
         self.assertEqual(processor.randomization_enabled, True)
         self.assertEqual(processor.N, loader.QueryRandomizerWorkloadProcessor.DEFAULT_N)
+        self.assertEqual(type(processor.N), int)
         self.assertEqual(processor.rf, loader.QueryRandomizerWorkloadProcessor.DEFAULT_RF)
+        self.assertEqual(type(processor.rf), float)
         input_workload = helper.get_simple_workload()
         self.assertNotEqual(repr(input_workload), repr(processor.on_after_load_workload(input_workload, get_standard_value=helper.get_standard_value,
                                                             get_standard_value_source=helper.get_standard_value_source)))

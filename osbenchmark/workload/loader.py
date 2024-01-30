@@ -928,9 +928,8 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         self.randomization_enabled = cfg.opts("workload", "randomization.enabled", mandatory=False, default_value=False)
         self.rf = cfg.opts("workload", "randomization.rf", mandatory=False, default_value=self.DEFAULT_RF)
         self.logger = logging.getLogger(__name__)
-        self.N = cfg.opts("workload", "randomization.n", mandatory=False, default_value=self.DEFAULT_N)
+        self.N = int(cfg.opts("workload", "randomization.n", mandatory=False, default_value=self.DEFAULT_N))
         self.zipf_alpha = 1
-        print("Type of N = ", type(self.N))
         self.H_list = self.precompute_H(self.N, self.zipf_alpha)
 
     # Helper functions for computing Zipf distribution
