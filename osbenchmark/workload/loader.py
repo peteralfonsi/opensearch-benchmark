@@ -1082,25 +1082,26 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             generate_new_standard_values = True
 
         for test_procedure in input_workload.test_procedures:
-            print("test procedure name = {}, is default = {}, schedule value = ".format(test_procedure.name, test_procedure.default, test_procedure.schedule))
-            for task in test_procedure.schedule:
-                for leaf_task in task:
-                    try:
-                        op_type = workload.OperationType.from_hyphenated_string(leaf_task.operation.type)
-                    except KeyError:
-                        op_type = None
-                    if op_type == workload.OperationType.Search:
-                        op_name = leaf_task.operation.name
-                        param_source_name = op_name + "-randomized"
-                        params.register_param_source_for_name(
-                            param_source_name,
-                            self.create_param_source_lambda(op_name, get_standard_value=get_standard_value,
-                                                            get_standard_value_source=get_standard_value_source))
-                        leaf_task.operation.param_source = param_source_name
-                        # Generate the right number of standard values for this field, if not already present
-                        for field_and_path in self.extract_fields_and_paths(leaf_task.operation.params):
-                            if generate_new_standard_values:
-                                params.generate_standard_values_if_absent(op_name, field_and_path[0], self.N)
+            print("test procedure name = {}, is default = {}, schedule value = {}".format(test_procedure.name, test_procedure.default, test_procedure.schedule))
+            if test_procedure.default: # TODO - not sure if this is correct
+                for task in test_procedure.schedule:
+                    for leaf_task in task:
+                        try:
+                            op_type = workload.OperationType.from_hyphenated_string(leaf_task.operation.type)
+                        except KeyError:
+                            op_type = None
+                        if op_type == workload.OperationType.Search:
+                            op_name = leaf_task.operation.name
+                            param_source_name = op_name + "-randomized"
+                            params.register_param_source_for_name(
+                                param_source_name,
+                                self.create_param_source_lambda(op_name, get_standard_value=get_standard_value,
+                                                                get_standard_value_source=get_standard_value_source))
+                            leaf_task.operation.param_source = param_source_name
+                            # Generate the right number of standard values for this field, if not already present
+                            for field_and_path in self.extract_fields_and_paths(leaf_task.operation.params):
+                                if generate_new_standard_values:
+                                    params.generate_standard_values_if_absent(op_name, field_and_path[0], self.N)
         return input_workload
 
 class CompleteWorkloadParams:
