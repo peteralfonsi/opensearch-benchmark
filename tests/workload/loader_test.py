@@ -1902,8 +1902,7 @@ class WorkloadRandomizationTests(TestCase):
         self.assertEqual(processor.rf, loader.QueryRandomizerWorkloadProcessor.DEFAULT_RF)
         workload = self.get_simple_workload(helper)
         self.assertNotEqual(workload, processor.on_after_load_workload(workload, get_standard_value=helper.get_standard_value,
-                                                            get_standard_value_source=helper.get_standard_value_source)) # These are still equal...idk exactly how it defines equality
-        # possibly bc the param source is the only change and that's weirdly not showing up in the error printout (we see param_source=[None])
+                                                            get_standard_value_source=helper.get_standard_value_source))
 
 
 

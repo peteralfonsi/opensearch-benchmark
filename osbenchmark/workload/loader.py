@@ -1065,21 +1065,30 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                                                                  op_name=op_name, **kwargs)
 
     def on_after_load_workload(self, input_workload,
-                               get_standard_value=params.get_standard_value,
-                               get_standard_value_source=params.get_standard_value_source): # Made these configurable for simpler unit tests):
+                               get_standard_value=None,
+                               get_standard_value_source=None):
+
+        # By default, use params for standard values and generate new standard values the first time an op/field is seen.
+        # In unit tests, we should be able to supply our own sources independent of params. 
+        generate_new_standard_values = False
+        if get_standard_value is None:
+            get_standard_value = params.get_standard_value
+            generate_new_standard_values = True
+        if get_standard_value_source is None:
+            get_standard_value_source = params.get_standard_value_source
+            generate_new_standard_values = True
+
+
         if not self.randomization_enabled:
             return input_workload
         for test_procedure in input_workload.test_procedures:
             for task in test_procedure.schedule:
                 for leaf_task in task:
-                    # Check that something is a search task??
-                    #if leaf_task.iterations is not None:
-                    #print("Task = ", leaf_task, "operation name = ", leaf_task.operation.name, "operation type = ", leaf_task.operation.type, "converted type =", workload.OperationType.from_hyphenated_string(leaf_task.operation.type))
                     try:
                         op_type = workload.OperationType.from_hyphenated_string(leaf_task.operation.type)
                     except KeyError:
-                        op_type = None 
-                    if op_type == workload.OperationType.Search: #(doesnt work for some reason)
+                        op_type = None
+                    if op_type == workload.OperationType.Search:
                         op_name = leaf_task.operation.name
                         param_source_name = op_name + "-randomized"
                         print("param source name = ", param_source_name)
@@ -1090,7 +1099,8 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                         leaf_task.operation.param_source = param_source_name
                         # Generate the right number of standard values for this field, if not already present
                         for field_and_path in self.extract_fields_and_paths(leaf_task.operation.params):
-                            params.generate_standard_values_if_absent(op_name, field_and_path[0], self.N)
+                            if generate_new_standard_values:
+                                params.generate_standard_values_if_absent(op_name, field_and_path[0], self.N)
         return input_workload
 
 class CompleteWorkloadParams:
