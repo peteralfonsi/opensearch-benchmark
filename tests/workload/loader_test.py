@@ -1683,6 +1683,61 @@ class WorkloadFilterTests(TestCase):
         self.assertEqual(expected_schedule, schedule)
 
 class WorkloadRandomizationTests(TestCase):
+
+    # Helper class used to set up a query with standard values for testing
+    class StandardValueHelper:
+        def __init__(self):
+            self.op_name = "op-name"
+            self.field_name = "dummy_field_1"
+            self.field_name_2 = "dummy_field_2"
+            self.index_name = "dummy_index"
+            self.saved_values = {self.field_name:{"lte":40, "gte":30},
+                                self.field_name_2:{"lte":"06/06/2016", "gte":"05/05/2016", "format":"dd/MM/yyyy"}}
+            self.new_values = {self.field_name:{"lte":41, "gte":31},
+                            self.field_name_2:{"lte":"04/04/2016", "gte":"03/03/2016", "format":"dd/MM/yyyy"}}
+                            # make these different to be able to distinguish when we generate a new value vs draw an "existing" one
+            self.sources = {
+                self.field_name:lambda : self.new_values[self.field_name],
+                self.field_name_2:lambda : self.new_values[self.field_name_2]
+            } # The actual source functions for the two fields, which in a real application would be defined in the workload's workload.py and involve some randomization
+
+            self.original_query_op = {
+                "name": self.op_name,
+                "operation-type": "search",
+                "body": {
+                    "size": 0,
+                    "query": {
+                        "bool": {
+                            "filter": {
+                                "range": {
+                                    self.field_name: {
+                                        "lt": 50,
+                                        "gte": 0
+                                    }
+                                },
+                                "must": [
+                                    {
+                                        "range": {
+                                            self.field_name_2: {
+                                                "gte": "01/01/2015",
+                                                "lte": "21/01/2015",
+                                                "format": "dd/MM/yyyy"
+                                            }
+                                        }
+                                    }
+                                ]
+
+                            }
+                        }
+                    }
+                }
+            }
+
+        def dummy_get_standard_value_source(self, op_name, field_name): # Passed to the processor, to be able to find the standard value sources for all ops/fields.
+            return self.sources[field_name]
+        def dummy_get_standard_value(self, op_name, field_name, index):# Passed to the processor, to be able to retrive the saved standard values for all ops/fields.
+            return self.saved_values[field_name]
+
     def test_range_finding_function(self):
         cfg = config.Config()
         processor = loader.QueryRandomizerWorkloadProcessor(cfg)
@@ -1773,17 +1828,17 @@ class WorkloadRandomizationTests(TestCase):
             self.assertEqual("Cannot extract range query fields from these params, missing params[\"body\"][\"query\"]",
                          ctx.exception.args[0])
 
-    def get_simple_workload(self, op_name, original_query_op, index_name):
+    def get_simple_workload(self, helper):
         # Modified from test_filters_tasks
         workload_specification = {
             "description": "description for unit test",
-            "indices": [{"name": index_name, "auto-managed": False}],
+            "indices": [{"name": helper.index_name, "auto-managed": False}],
             "operations": [
                 {
                     "name": "create-index",
                     "operation-type": "create-index"
                 },
-                original_query_op,
+                helper.original_query_op,
             ],
             "test_procedures": [
                 {
@@ -1794,7 +1849,7 @@ class WorkloadRandomizationTests(TestCase):
                         },
                         {
                             "name": "dummy-task-name",
-                            "operation": op_name,
+                            "operation": helper.op_name,
                         }
                     ]
                 }
@@ -1805,83 +1860,33 @@ class WorkloadRandomizationTests(TestCase):
         return full_workload
 
     def test_get_randomized_values(self):
-        op_name = "dummy_operation"
-        field_name = "dummy_field"
-        field_name_2 = "dummy_field_2"
-        index_name = "dummy_index"
-        saved_values = {field_name:{"lte":40, "gte":30},
-                         field_name_2:{"lte":"06/06/2016", "gte":"05/05/2016", "format":"dd/MM/yyyy"}}
-        new_values = {field_name:{"lte":41, "gte":31},
-                      field_name_2:{"lte":"04/04/2016", "gte":"03/03/2016", "format":"dd/MM/yyyy"}}
-                        # make these different to be able to distinguish when we generate a new value vs draw an "existing" one
-        sources = {
-            field_name:lambda : new_values[field_name],
-            field_name_2:lambda : new_values[field_name_2]
-        } # The actual source functions for the two fields, which in a real application would be defined in the workload's workload.py and involve some randomization
+        helper = self.StandardValueHelper()
+        workload = self.get_simple_workload(helper)
 
-        original_query_op = {
-            "name": op_name,
-            "operation-type": "search",
-            "body": {
-                "size": 0,
-                "query": {
-                    "bool": {
-                        "filter": {
-                            "range": {
-                                field_name: {
-                                    "lt": 50,
-                                    "gte": 0
-                                }
-                            },
-                            "must": [
-                                {
-                                    "range": {
-                                        field_name_2: {
-                                            "gte": "01/01/2015",
-                                            "lte": "21/01/2015",
-                                            "format": "dd/MM/yyyy"
-                                        }
-                                    }
-                                }
-                            ]
-
-                        }
-                    }
-                }
-            }
-        }
-
-        def dummy_get_standard_value_source(op_name, field_name): # Passed to the processor, to be able to find the standard value sources for all ops/fields.
-            return sources[field_name]
-        def dummy_get_standard_value(op_name, field_name, index):# Passed to the processor, to be able to retrive the saved standard values for all ops/fields.
-            return saved_values[field_name]
-
-        workload = self.get_simple_workload(op_name, original_query_op, index_name)
-
-        for rf, expected_dict in zip([1.0, 0.0], [saved_values, new_values]):
+        for rf, expected_values_dict in zip([1.0, 0.0], [helper.saved_values, helper.new_values]):
             cfg = config.Config()
             cfg.add(config.Scope.application, "workload", "randomization.rf", rf) # first test where we always draw a saved value, not a new random one
             processor = loader.QueryRandomizerWorkloadProcessor(cfg)
             self.assertAlmostEqual(processor.rf, rf)
-            modified_params = processor.get_randomized_values(workload, original_query_op, op_name=op_name,
-                                                            get_standard_value=dummy_get_standard_value,
-                                                            get_standard_value_source=dummy_get_standard_value_source)
-            new_range = modified_params["body"]["query"]["bool"]["filter"]["range"][field_name]
-            new_range_2 = modified_params["body"]["query"]["bool"]["filter"]["must"][0]["range"][field_name_2]
+            modified_params = processor.get_randomized_values(workload, helper.original_query_op, op_name=helper.op_name,
+                                                            get_standard_value=helper.dummy_get_standard_value,
+                                                            get_standard_value_source=helper.dummy_get_standard_value_source)
+            new_range = modified_params["body"]["query"]["bool"]["filter"]["range"][helper.field_name]
+            new_range_2 = modified_params["body"]["query"]["bool"]["filter"]["must"][0]["range"][helper.field_name_2]
             print("NEW RANGE RF = 1:", new_range)
-            self.assertEqual(new_range["lt"], expected_dict[field_name]["lte"]) # Note it should keep whichever of lt/lte it found in the original query
-            self.assertEqual(new_range["gte"], expected_dict[field_name]["gte"])
-            self.assertEqual(new_range_2["lte"], expected_dict[field_name_2]["lte"]) # Note it should keep whichever of lt/lte it found in the original query
-            self.assertEqual(new_range_2["gte"], expected_dict[field_name_2]["gte"])
-            self.assertEqual(new_range_2["format"], expected_dict[field_name_2]["format"])
-            self.assertEqual(modified_params["index"], index_name)
+            self.assertEqual(new_range["lt"], expected_values_dict[helper.field_name]["lte"]) # Note it should keep whichever of lt/lte it found in the original query
+            self.assertEqual(new_range["gte"], expected_values_dict[helper.field_name]["gte"])
+            self.assertEqual(new_range_2["lte"], expected_values_dict[helper.field_name_2]["lte"])
+            self.assertEqual(new_range_2["gte"], expected_values_dict[helper.field_name_2]["gte"])
+            self.assertEqual(new_range_2["format"], expected_values_dict[helper.field_name_2]["format"])
+            self.assertEqual(modified_params["index"], helper.index_name)
 
     '''def test_on_after_load_workload(self):
-        # NOT DONE
         cfg = config.Config()
         processor = loader.QueryRandomizerWorkloadProcessor(cfg)
-        # Do nothing with default config
-        self.assertEqual(original_query, processor.on_after_load_workload())'''
+        # Do nothing with default config as randomization.enabled is false
+        workload = self.get_simple_workload("index")
+        self.assertEqual(, processor.on_after_load_workload(workload, ))'''
 
 
 

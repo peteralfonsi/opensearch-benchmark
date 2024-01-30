@@ -1043,7 +1043,8 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         if random.random() < self.rf:
             # Draw a potentially repeated value from the generated standard values
             index = self.get_repeated_value_index()
-            new_values = [get_standard_value(kwargs["op_name"], field_and_path[0], index) for field_and_path in fields_and_paths] # Use the same index for all fields in one query
+            new_values = [get_standard_value(kwargs["op_name"], field_and_path[0], index) for field_and_path in fields_and_paths]
+            # Use the same index for all fields in one query, otherwise the probability of repeats in a multi-field query would be very low
             input_params = self.set_range(input_params, fields_and_paths, new_values)
             input_params[repeated_param_name] = True
             input_params[zipf_index_param] = index
@@ -1068,7 +1069,6 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                                get_standard_value_source=params.get_standard_value_source): # Made these configurable for simpler unit tests):
         if not self.randomization_enabled:
             return input_workload
-        print("Randomizing queries!!")
         for test_procedure in input_workload.test_procedures:
             for task in test_procedure.schedule:
                 for leaf_task in task:
