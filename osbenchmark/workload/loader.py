@@ -1074,7 +1074,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                 for leaf_task in task:
                     # Check that something is a search task??
                     #if leaf_task.iterations is not None:
-                    print("Task = ", leaf_task, "operation name = ", leaf_task.operation.name, "operation type = ", leaf_task.operation.type)
+                    print("Task = ", leaf_task, "operation name = ", leaf_task.operation.name, "operation type = ", leaf_task.operation.type, "converted type =", workload.OperationType.from_hyphenated_string(leaf_task.operation.type))
                     if leaf_task.operation.type == workload.OperationType.Search: #(doesnt work for some reason)
                         op_name = leaf_task.operation.name
                         param_source_name = op_name + "-randomized"
