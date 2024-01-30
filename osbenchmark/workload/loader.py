@@ -968,7 +968,8 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         return curr
 
     def extract_fields_helper(self, root, current_path):
-        # Recursively call this - if the root is a field name, return that field name. If the root is a leaf node of the tree represented in the params, return None.
+        # Recursively called to find the location of ranges in an OpenSearch range query.
+        # Return the field and the current path if we're currently scanning the field name in a range query, otherwise return an empty list. 
         fields = [] # pairs of (field, path_to_field)
         curr = self.get_dict_from_previous_path(root, current_path)
         if type(curr) is dict and curr != {}:
@@ -1058,7 +1059,6 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         return input_params
 
     def create_param_source_lambda(self, op_name, get_standard_value, get_standard_value_source):
-        # This function makes the op_name behave correctly
         return lambda w, p, **kwargs: self.get_randomized_values(w, p,
                                                                  get_standard_value=get_standard_value,
                                                                  get_standard_value_source=get_standard_value_source,
@@ -1068,8 +1068,11 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                                get_standard_value=None,
                                get_standard_value_source=None):
 
+        if not self.randomization_enabled:
+            return input_workload
+
         # By default, use params for standard values and generate new standard values the first time an op/field is seen.
-        # In unit tests, we should be able to supply our own sources independent of params. 
+        # In unit tests, we should be able to supply our own sources independent of params.
         generate_new_standard_values = False
         if get_standard_value is None:
             get_standard_value = params.get_standard_value
@@ -1078,9 +1081,6 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             get_standard_value_source = params.get_standard_value_source
             generate_new_standard_values = True
 
-
-        if not self.randomization_enabled:
-            return input_workload
         for test_procedure in input_workload.test_procedures:
             for task in test_procedure.schedule:
                 for leaf_task in task:
@@ -1091,7 +1091,6 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                     if op_type == workload.OperationType.Search:
                         op_name = leaf_task.operation.name
                         param_source_name = op_name + "-randomized"
-                        print("param source name = ", param_source_name)
                         params.register_param_source_for_name(
                             param_source_name,
                             self.create_param_source_lambda(op_name, get_standard_value=get_standard_value,
