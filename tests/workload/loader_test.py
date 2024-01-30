@@ -1695,7 +1695,9 @@ class WorkloadRandomizationTests(TestCase):
                                 self.field_name_2:{"lte":"06/06/2016", "gte":"05/05/2016", "format":"dd/MM/yyyy"}}
             self.new_values = {self.field_name:{"lte":41, "gte":31},
                             self.field_name_2:{"lte":"04/04/2016", "gte":"03/03/2016", "format":"dd/MM/yyyy"}}
-                            # make these different to be able to distinguish when we generate a new value vs draw an "existing" one
+            # make these different to be able to distinguish when we generate a new value vs draw an "existing" one
+            # in actual usage, these would come from the same function with some randomness in it
+
             self.sources = {
                 self.field_name:lambda : self.new_values[self.field_name],
                 self.field_name_2:lambda : self.new_values[self.field_name_2]
@@ -1733,9 +1735,9 @@ class WorkloadRandomizationTests(TestCase):
                 }
             }
 
-        def dummy_get_standard_value_source(self, op_name, field_name): # Passed to the processor, to be able to find the standard value sources for all ops/fields.
+        def get_standard_value_source(self, op_name, field_name): # Passed to the processor, to be able to find the standard value sources for all ops/fields.
             return self.sources[field_name]
-        def dummy_get_standard_value(self, op_name, field_name, index):# Passed to the processor, to be able to retrive the saved standard values for all ops/fields.
+        def get_standard_value(self, op_name, field_name, index):# Passed to the processor, to be able to retrive the saved standard values for all ops/fields.
             return self.saved_values[field_name]
 
     def test_range_finding_function(self):
@@ -1864,13 +1866,15 @@ class WorkloadRandomizationTests(TestCase):
         workload = self.get_simple_workload(helper)
 
         for rf, expected_values_dict in zip([1.0, 0.0], [helper.saved_values, helper.new_values]):
+            # first test where we always draw a saved value, not a new random one
+            # next test where we always draw a new random value. We've made them distinct, to be able to tell which codepath is taken
             cfg = config.Config()
-            cfg.add(config.Scope.application, "workload", "randomization.rf", rf) # first test where we always draw a saved value, not a new random one
+            cfg.add(config.Scope.application, "workload", "randomization.rf", rf)
             processor = loader.QueryRandomizerWorkloadProcessor(cfg)
             self.assertAlmostEqual(processor.rf, rf)
             modified_params = processor.get_randomized_values(workload, helper.original_query_op, op_name=helper.op_name,
-                                                            get_standard_value=helper.dummy_get_standard_value,
-                                                            get_standard_value_source=helper.dummy_get_standard_value_source)
+                                                            get_standard_value=helper.get_standard_value,
+                                                            get_standard_value_source=helper.get_standard_value_source)
             new_range = modified_params["body"]["query"]["bool"]["filter"]["range"][helper.field_name]
             new_range_2 = modified_params["body"]["query"]["bool"]["filter"]["must"][0]["range"][helper.field_name_2]
             print("NEW RANGE RF = 1:", new_range)
@@ -1881,12 +1885,25 @@ class WorkloadRandomizationTests(TestCase):
             self.assertEqual(new_range_2["format"], expected_values_dict[helper.field_name_2]["format"])
             self.assertEqual(modified_params["index"], helper.index_name)
 
-    '''def test_on_after_load_workload(self):
+    def test_on_after_load_workload(self):
         cfg = config.Config()
         processor = loader.QueryRandomizerWorkloadProcessor(cfg)
         # Do nothing with default config as randomization.enabled is false
-        workload = self.get_simple_workload("index")
-        self.assertEqual(, processor.on_after_load_workload(workload, ))'''
+        helper = self.StandardValueHelper()
+        workload = self.get_simple_workload(helper)
+        self.assertEqual(workload, processor.on_after_load_workload(workload, get_standard_value=helper.get_standard_value,
+                                                            get_standard_value_source=helper.get_standard_value_source))
+
+        cfg = config.Config()
+        cfg.add(config.Scope.application, "workload", "randomization.enabled", True)
+        processor = loader.QueryRandomizerWorkloadProcessor(cfg)
+        self.assertEqual(processor.randomization_enabled, True)
+        self.assertEqual(processor.N, loader.QueryRandomizerWorkloadProcessor.DEFAULT_N)
+        self.assertEqual(processor.rf, loader.QueryRandomizerWorkloadProcessor.DEFAULT_RF)
+        workload = self.get_simple_workload(helper)
+        self.assertNotEqual(workload, processor.on_after_load_workload(workload, get_standard_value=helper.get_standard_value,
+                                                            get_standard_value_source=helper.get_standard_value_source)) # These are still equal...idk exactly how it defines equality
+        # possibly bc the param source is the only change and that's weirdly not showing up in the error printout (we see param_source=[None])
 
 
 

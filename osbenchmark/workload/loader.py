@@ -1073,8 +1073,9 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             for task in test_procedure.schedule:
                 for leaf_task in task:
                     # Check that something is a search task??
-                    #if leaf_task.operation.type is workload.OperationType.Search: (doesnt work for some reason)
-                    if leaf_task.iterations is not None:
+                    #if leaf_task.iterations is not None:
+                    print("Task = ", leaf_task, "operation name = ", leaf_task.operation.name, "operation type = ", leaf_task.operation.type)
+                    if leaf_task.operation.type == workload.OperationType.Search: #(doesnt work for some reason)
                         op_name = leaf_task.operation.name
                         param_source_name = op_name + "-randomized"
                         print("param source name = ", param_source_name)
