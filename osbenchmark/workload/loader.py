@@ -1251,6 +1251,7 @@ class WorkloadPluginReader:
         self.scheduler_registry = scheduler_registry
         self.workload_processor_registry = workload_processor_registry
         self.loader = modules.ComponentLoader(root_path=workload_plugin_path, component_entry_point="workload")
+        self.i = 0 # debug
 
     def can_load(self):
         return self.loader.can_load()
@@ -1282,13 +1283,15 @@ class WorkloadPluginReader:
 
     def register_standard_value_source(self, op_name, field_name, standard_value_source):
         # Define a value source for parameters for a given operation name and field name, for use in randomization
-        #try:
-        print("Registering for op {}, field {}. Traceback:".format(op_name, field_name))
-        traceback.print_stack()
-        params.register_standard_value_source(op_name, field_name, standard_value_source) # TODO: Should this live in params?
-        #except exceptions.SystemSetupError:
-        #    print("Attempted to re-register for op {}, field {}, with lambda {}!!".format(op_name, field_name, standard_value_source))
-        #    # TODO: Figure out why this function runs hundreds of times!!
+        try:
+            print("Registering for op {}, field {}. Traceback:".format(op_name, field_name))
+            if op_name == "range":
+                self.i += 1
+            #traceback.print_stack()
+            params.register_standard_value_source(op_name, field_name, standard_value_source) # TODO: Should this live in params?
+        except exceptions.SystemSetupError:
+            print("Attempted to re-register for op {}, field {}, with lambda {}, for {}-th time!!".format(op_name, field_name, standard_value_source, i))
+            # TODO: Figure out why this function runs hundreds of times!!
             #pass
 
     @property
