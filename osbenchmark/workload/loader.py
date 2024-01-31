@@ -1282,13 +1282,13 @@ class WorkloadPluginReader:
 
     def register_standard_value_source(self, op_name, field_name, standard_value_source):
         # Define a value source for parameters for a given operation name and field name, for use in randomization
-        try:
-            print("Registering for op {}, field {}. Traceback:".format(op_name, field_name))
-            traceback.print_stack()
-            params.register_standard_value_source(op_name, field_name, standard_value_source) # TODO: Should this live in params?
-        except exceptions.SystemSetupError:
-            print("Attempted to re-register for op {}, field {}, with lambda {}!!".format(op_name, field_name, standard_value_source))
-            # TODO: Figure out why this function runs hundreds of times!!
+        #try:
+        print("Registering for op {}, field {}. Traceback:".format(op_name, field_name))
+        traceback.print_stack()
+        params.register_standard_value_source(op_name, field_name, standard_value_source) # TODO: Should this live in params?
+        #except exceptions.SystemSetupError:
+        #    print("Attempted to re-register for op {}, field {}, with lambda {}!!".format(op_name, field_name, standard_value_source))
+        #    # TODO: Figure out why this function runs hundreds of times!!
             #pass
 
     @property
