@@ -1270,7 +1270,9 @@ class WorkloadPluginReader:
         params.register_param_source_for_name(name, param_source)
 
     def register_runner(self, name, runner, **kwargs):
+        print("Registering runner with WorkloadPluginReader = {}".format(self))
         if self.runner_registry:
+            print("Registering runner with WorkloadPluginReader = {}, WITH REGISTRY".format(self))
             self.runner_registry(name, runner, **kwargs)
 
     def register_scheduler(self, name, scheduler):
