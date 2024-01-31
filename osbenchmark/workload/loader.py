@@ -199,6 +199,7 @@ def _load_single_workload(cfg, workload_repository, workload_name):
         reader = WorkloadFileReader(cfg)
         current_workload = reader.read(workload_name, workload_repository.workload_file(workload_name), workload_dir)
         tpr = WorkloadProcessorRegistry(cfg)
+        print("Loading workload plugins in _load_single_workload")
         has_plugins = load_workload_plugins(cfg, workload_name, register_workload_processor=tpr.register_workload_processor)
         current_workload.has_plugins = has_plugins
         for processor in tpr.processors:
@@ -235,6 +236,7 @@ def load_workload_plugins(cfg,
     workload_plugin_path = repo.workload_dir(workload_name)
     logging.getLogger(__name__).debug("Invoking plugin_reader with name [%s] resolved to path [%s]", workload_name, workload_plugin_path)
     plugin_reader = WorkloadPluginReader(workload_plugin_path, register_runner, register_scheduler, register_workload_processor)
+    print("load_workload_plugins called, run with new WorkloadPluginReader {}".format(plugin_reader))
 
     if plugin_reader.can_load():
         plugin_reader.load()

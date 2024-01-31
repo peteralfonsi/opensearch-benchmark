@@ -192,6 +192,7 @@ class BenchmarkCoordinator:
             if specified_version < min_os_version:
                 raise exceptions.SystemSetupError(f"Cluster version must be at least [{min_os_version}] but was [{distribution_version}]")
 
+        print("calling workload.load_workload from BenchmarkCoordinator.setup()")
         self.current_workload = workload.load_workload(self.cfg)
         self.workload_revision = self.cfg.opts("workload", "repository.revision", mandatory=False)
         test_procedure_name = self.cfg.opts("workload", "test_procedure.name")
