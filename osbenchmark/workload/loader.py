@@ -1290,7 +1290,7 @@ class WorkloadPluginReader:
             #traceback.print_stack()
             params.register_standard_value_source(op_name, field_name, standard_value_source) # TODO: Should this live in params?
         except exceptions.SystemSetupError:
-            print("Attempted to re-register for op {}, field {}, with lambda {}, for {}-th time!!".format(op_name, field_name, standard_value_source, self.i))
+            print("Attempted to re-register for op {}, field {}, with lambda {}, for {}-th time, with WorkloadPluginReader = {}!!".format(op_name, field_name, standard_value_source, self.i, self))
             # TODO: Figure out why this function runs hundreds of times!!
             #pass
 
