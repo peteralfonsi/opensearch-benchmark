@@ -1040,8 +1040,6 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
 
         fields_and_paths = self.extract_fields_and_paths(input_params)
 
-        #print("Operation name = ", kwargs["op_name"])
-
         if random.random() < self.rf:
             # Draw a potentially repeated value from the saved standard values
             index = self.get_repeated_value_index()
@@ -1051,7 +1049,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             input_params[repeated_param_name] = True
             input_params[zipf_index_param] = index
         else:
-            # Generate a new random value, from the standard value source function
+            # Generate a new random value, from the standard value source function. This will be new (a cache miss)
             new_values = [get_standard_value_source(kwargs["op_name"], field_and_path[0])() for field_and_path in fields_and_paths]
             input_params = self.set_range(input_params, fields_and_paths, new_values)
             input_params[repeated_param_name] = False
@@ -1286,9 +1284,9 @@ class WorkloadPluginReader:
         try:
             params.register_standard_value_source(op_name, field_name, standard_value_source) # TODO: Should this live in params?
         except exceptions.SystemSetupError:
-            #print("Attempted to re-register for op {}, field {}!!".format(op_name, field_name))
+            print("Attempted to re-register for op {}, field {}, with lambda {}!!".format(op_name, field_name, standard_value_source))
             # TODO: Figure out why this function runs hundreds of times!!
-            pass
+            #pass
 
     @property
     def meta_data(self):
