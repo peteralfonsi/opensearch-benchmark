@@ -1083,6 +1083,7 @@ class WorkloadPluginReader:
             raise exceptions.SystemSetupError(msg)
 
     def register_param_source(self, name, param_source):
+        print("Registering param source with self = {}".format(self))
         params.register_param_source_for_name(name, param_source)
 
     def register_runner(self, name, runner, **kwargs):
