@@ -1002,7 +1002,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             raise exceptions.SystemSetupError("Cannot extract range query fields from these params, missing params[\"body\"][\"query\"]")
         fields_and_paths = self.extract_fields_helper(root, [])
 
-        print("Extracted fields = ", fields_and_paths)
+        #print("Extracted fields = ", fields_and_paths)
         return fields_and_paths
 
     def set_range(self, params, fields_and_paths, new_values):
@@ -1039,7 +1039,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
 
         fields_and_paths = self.extract_fields_and_paths(input_params)
 
-        print("Operation name = ", kwargs["op_name"])
+        #print("Operation name = ", kwargs["op_name"])
 
         if random.random() < self.rf:
             # Draw a potentially repeated value from the saved standard values
@@ -1055,7 +1055,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             input_params = self.set_range(input_params, fields_and_paths, new_values)
             input_params[repeated_param_name] = False
             input_params[zipf_index_param] = None
-        print("Params after = ", input_params)
+        #print("Params after = ", input_params)
         return input_params
 
     def create_param_source_lambda(self, op_name, get_standard_value, get_standard_value_source):
@@ -1082,7 +1082,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             generate_new_standard_values = True
 
         for test_procedure in input_workload.test_procedures:
-            print("test procedure name = {}, is default = {}, schedule value = {}".format(test_procedure.name, test_procedure.default, test_procedure.schedule))
+            #print("test procedure name = {}, is default = {}, schedule value = {}".format(test_procedure.name, test_procedure.default, test_procedure.schedule))
             if test_procedure.default: # TODO - not sure if this is correct
                 for task in test_procedure.schedule:
                     for leaf_task in task:
@@ -1286,7 +1286,7 @@ class WorkloadPluginReader:
             params.register_standard_value_source(op_name, field_name, standard_value_source) # TODO: Should this live in params?
         except exceptions.SystemSetupError:
             #print("Attempted to re-register for op {}, field {}!!".format(op_name, field_name))
-            # TODO: Figure out why this function runs hundreds of times!! 
+            # TODO: Figure out why this function runs hundreds of times!!
             pass
 
     @property
