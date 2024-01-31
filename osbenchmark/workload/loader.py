@@ -29,7 +29,6 @@ import random
 import re
 import sys
 import tempfile
-import traceback
 import urllib.error
 
 import jinja2
@@ -1002,8 +1001,6 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         except KeyError:
             raise exceptions.SystemSetupError("Cannot extract range query fields from these params, missing params[\"body\"][\"query\"]")
         fields_and_paths = self.extract_fields_helper(root, [])
-
-        #print("Extracted fields = ", fields_and_paths)
         return fields_and_paths
 
     def set_range(self, params, fields_and_paths, new_values):
@@ -1031,8 +1028,6 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                               get_standard_value=params.get_standard_value,
                               get_standard_value_source=params.get_standard_value_source, # Made these configurable for simpler unit tests
                               **kwargs):
-        repeated_param_name = "repeated" # debug only, remove
-        zipf_index_param = "zipf_index" # debug only, remove
 
         # The queries as listed in operations/default.json don't have the index param,
         # unlike the custom ones you would specify in workload.py, so we have to add them ourselves
@@ -1047,15 +1042,10 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             new_values = [get_standard_value(kwargs["op_name"], field_and_path[0], index) for field_and_path in fields_and_paths]
             # Use the same index for all fields in one query, otherwise the probability of repeats in a multi-field query would be very low
             input_params = self.set_range(input_params, fields_and_paths, new_values)
-            input_params[repeated_param_name] = True
-            input_params[zipf_index_param] = index
         else:
             # Generate a new random value, from the standard value source function. This will be new (a cache miss)
             new_values = [get_standard_value_source(kwargs["op_name"], field_and_path[0])() for field_and_path in fields_and_paths]
             input_params = self.set_range(input_params, fields_and_paths, new_values)
-            input_params[repeated_param_name] = False
-            input_params[zipf_index_param] = None
-        #print("Params after = ", input_params)
         return input_params
 
     def create_param_source_lambda(self, op_name, get_standard_value, get_standard_value_source):
@@ -1082,7 +1072,6 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             generate_new_standard_values = True
 
         for test_procedure in input_workload.test_procedures:
-            #print("test procedure name = {}, is default = {}, schedule value = {}".format(test_procedure.name, test_procedure.default, test_procedure.schedule))
             if test_procedure.default: # TODO - not sure if this is correct
                 for task in test_procedure.schedule:
                     for leaf_task in task:
@@ -1251,7 +1240,6 @@ class WorkloadPluginReader:
         self.scheduler_registry = scheduler_registry
         self.workload_processor_registry = workload_processor_registry
         self.loader = modules.ComponentLoader(root_path=workload_plugin_path, component_entry_point="workload")
-        self.i = 0 # debug
 
     def can_load(self):
         return self.loader.can_load()
@@ -1267,13 +1255,10 @@ class WorkloadPluginReader:
             raise exceptions.SystemSetupError(msg)
 
     def register_param_source(self, name, param_source):
-        print("Registering param source with WorkloadPluginReader = {}".format(self))
         params.register_param_source_for_name(name, param_source)
 
     def register_runner(self, name, runner, **kwargs):
-        print("Registering runner with WorkloadPluginReader = {}".format(self))
         if self.runner_registry:
-            print("Registering runner with WorkloadPluginReader = {}, WITH REGISTRY".format(self))
             self.runner_registry(name, runner, **kwargs)
 
     def register_scheduler(self, name, scheduler):
@@ -1287,15 +1272,10 @@ class WorkloadPluginReader:
     def register_standard_value_source(self, op_name, field_name, standard_value_source):
         # Define a value source for parameters for a given operation name and field name, for use in randomization
         try:
-            print("Registering for op {}, field {}. Traceback:".format(op_name, field_name))
-            if op_name == "range":
-                self.i += 1
-            #traceback.print_stack()
             params.register_standard_value_source(op_name, field_name, standard_value_source) # TODO: Should this live in params?
         except exceptions.SystemSetupError:
-            print("Attempted to re-register for op {}, field {}, with lambda {}, for {}-th time, with WorkloadPluginReader = {}!!".format(op_name, field_name, standard_value_source, self.i, self))
+            print("Attempted to re-register for op {}, field {}, with lambda {}, for {}-th time, with WorkloadPluginReader = {}!!".format(op_name, field_name, standard_value_source, 0, self))
             # TODO: Figure out why this function runs hundreds of times!!
-            #pass
 
     @property
     def meta_data(self):
