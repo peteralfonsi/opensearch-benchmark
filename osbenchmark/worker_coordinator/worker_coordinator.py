@@ -379,6 +379,7 @@ class TaskExecutionActor(actor.BenchmarkActor):
         self.cfg = load_local_config(msg.cfg)
         if self.cfg.opts("workload", "test.mode.enabled"):
             self.wakeup_interval = 0.5
+        print("Calling load_workload_plugins from receiveMsg_StartTaskLoop")
         workload.load_workload_plugins(self.cfg, self.workload_name)
         self.send(self.parent, ReadyForWork())
 
@@ -1045,6 +1046,7 @@ class Worker(actor.BenchmarkActor):
             self.wakeup_interval = 0.5
         runner.register_default_runners()
         if self.workload.has_plugins:
+            print("Calling load_workload_plugins from receiveMsg_StartWorker")
             workload.load_workload_plugins(self.config, self.workload.name, runner.register_runner, scheduler.register_scheduler)
         self.drive()
 
