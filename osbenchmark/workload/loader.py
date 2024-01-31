@@ -1023,7 +1023,8 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         return params
 
     def get_repeated_value_index(self):
-        return self.zipf_cdf_inverse(random.random(), self.H_list)
+        # minus 1 for mapping [1, N] to [0, N-1] of list indices
+        return self.zipf_cdf_inverse(random.random(), self.H_list) - 1
 
     def get_randomized_values(self, input_workload, input_params,
                               get_standard_value=params.get_standard_value,
