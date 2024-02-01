@@ -1271,11 +1271,7 @@ class WorkloadPluginReader:
 
     def register_standard_value_source(self, op_name, field_name, standard_value_source):
         # Define a value source for parameters for a given operation name and field name, for use in randomization
-        try:
-            params.register_standard_value_source(op_name, field_name, standard_value_source) # TODO: Should this live in params?
-        except exceptions.SystemSetupError:
-            print("Attempted to re-register for op {}, field {}, with lambda {}, for {}-th time, with WorkloadPluginReader = {}!!".format(op_name, field_name, standard_value_source, 0, self))
-            # TODO: Figure out why this function runs hundreds of times!!
+        params.register_standard_value_source(op_name, field_name, standard_value_source)
 
     @property
     def meta_data(self):

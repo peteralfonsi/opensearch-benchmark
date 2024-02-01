@@ -90,10 +90,8 @@ def register_param_source_for_name(name, param_source_class):
 
 def register_standard_value_source(op_name, field_name, standard_value_source):
     if op_name in __STANDARD_VALUE_SOURCES:
-        if not field_name in __STANDARD_VALUE_SOURCES[op_name]:
-            __STANDARD_VALUE_SOURCES[op_name][field_name] = standard_value_source
-        else:
-            raise exceptions.SystemSetupError("Cannot register new source for operation {}, field {}. A source has already been registered".format(op_name, field_name))
+        __STANDARD_VALUE_SOURCES[op_name][field_name] = standard_value_source
+        # We have to allow re-registration for the same op/field, since plugins are loaded many times when a workload is run
     else:
         __STANDARD_VALUE_SOURCES[op_name] = {field_name:standard_value_source}
 

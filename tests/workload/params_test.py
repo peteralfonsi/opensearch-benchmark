@@ -1421,9 +1421,6 @@ class StandardValueSourceRegistrationTests(TestCase):
         params._clear_standard_values()
 
         params.register_standard_value_source(op_name, field_name_1, self.get_mock_standard_value_source(gte_field_1, lte_field_1))
-        with self.assertRaises(exceptions.SystemSetupError) as ctx:
-            params.register_standard_value_source(op_name, field_name_1, self.get_mock_standard_value_source(15, 16))
-            self.assertEqual("Cannot register new source for operation {}, field {}. A source has already been registered".format(op_name, field_name_1), ctx.exception.args[0])
 
         self.assertEqual(params.get_standard_value_source(op_name, field_name_1)(), {"gte":gte_field_1, "lte":lte_field_1})
 
