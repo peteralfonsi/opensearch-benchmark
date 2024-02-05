@@ -1035,6 +1035,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             input_params["index"] = params.get_target(input_workload, input_params)
 
         fields_and_paths = self.extract_fields_and_paths(input_params)
+        zipf_index_field = "zipf-index"
 
         if random.random() < self.rf:
             # Draw a potentially repeated value from the saved standard values
@@ -1042,10 +1043,14 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             new_values = [get_standard_value(kwargs["op_name"], field_and_path[0], index) for field_and_path in fields_and_paths]
             # Use the same index for all fields in one query, otherwise the probability of repeats in a multi-field query would be very low
             input_params = self.set_range(input_params, fields_and_paths, new_values)
+            input_params[zipf_index_field] = index
         else:
             # Generate a new random value, from the standard value source function. This will be new (a cache miss)
             new_values = [get_standard_value_source(kwargs["op_name"], field_and_path[0])() for field_and_path in fields_and_paths]
             input_params = self.set_range(input_params, fields_and_paths, new_values)
+            input_params[zipf_index_field] = None
+        print("Modified params = {}".format(input_params))
+
         return input_params
 
     def create_param_source_lambda(self, op_name, get_standard_value, get_standard_value_source):
