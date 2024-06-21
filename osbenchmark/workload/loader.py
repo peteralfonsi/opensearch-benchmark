@@ -972,6 +972,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             if u < numerator / denominator:
                 return candidate_return
             candidate_return += 1
+        print("ZIPF alpha = {}, returning {}".format(self.zipf_alpha, candidate_return))
         return n
 
     def get_dict_from_previous_path(self, root, current_path):
