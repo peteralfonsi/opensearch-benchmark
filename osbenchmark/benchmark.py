@@ -912,6 +912,7 @@ def dispatch_sub_command(arg_parser, args, cfg):
             cfg.add(config.Scope.applicationOverride, "workload", "randomization.enabled", args.randomization_enabled)
             cfg.add(config.Scope.applicationOverride, "workload", "randomization.repeat_frequency", args.randomization_repeat_frequency)
             cfg.add(config.Scope.applicationOverride, "workload", "randomization.n", args.randomization_n)
+            cfg.add(config.Scope.applicationOverride, "workload", "randomization.alpha", args.randomization_alpha)
             configure_workload_params(arg_parser, args, cfg)
             configure_connection_params(arg_parser, args, cfg)
             configure_telemetry_params(args, cfg)
