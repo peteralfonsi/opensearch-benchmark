@@ -1068,7 +1068,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
             new_values = [get_standard_value_source(kwargs["op_name"], field_and_path[0])() for field_and_path in fields_and_paths]
             input_params = self.set_range(input_params, fields_and_paths, new_values)
             input_params[zipf_index_param] = None
-        print("Params after: " , input_params)
+        #print("Params after: " , input_params)
         return input_params
 
     def create_param_source_lambda(self, op_name, get_standard_value, get_standard_value_source):
