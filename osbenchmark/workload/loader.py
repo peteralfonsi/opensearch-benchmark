@@ -941,6 +941,8 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
         self.rf = float(cfg.opts("workload", "randomization.repeat_frequency", mandatory=False, default_value=self.DEFAULT_RF))
         self.logger = logging.getLogger(__name__)
         self.N = int(cfg.opts("workload", "randomization.n", mandatory=False, default_value=self.DEFAULT_N))
+        print("cfg opts = {}".format(cfg._opts))
+        print("cfg opts in workload section = {}".format(cfg.all_opts("workload")))
         self.zipf_alpha = float(cfg.opts("workload", "randomization.alpha", mandatory=False, default_value=self.DEFAULT_ALPHA))
         print("Zipf alpha = {}".format(self.zipf_alpha))
         self.H_list = self.precompute_H(self.N, self.zipf_alpha)
