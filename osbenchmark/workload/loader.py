@@ -1163,7 +1163,7 @@ class QueryRandomizerWorkloadProcessor(WorkloadProcessor):
                     self.logger.info(
                         "Found operation %s in default schedule with type %s, which couldn't be converted to a known OperationType",
                         leaf_task.operation.name, leaf_task.operation.type)
-                if op_type == workload.OperationType.Search:
+                if op_type == workload.OperationType.Search or op_type == workload.OperationType.VectorSearch:
                     op_name = leaf_task.operation.name
                     param_source_name = op_name + "-randomized"
                     params.register_param_source_for_name(
