@@ -131,7 +131,8 @@ class SummaryResultsPublisher:
         self.cwd = config.opts("node", "benchmark.cwd")
         self.display_percentiles = {
             "throughput":comma_separated_string_to_number_list(config.opts("workload", "throughput.percentiles", mandatory=False)),
-            "latency": comma_separated_string_to_number_list(config.opts("workload", "latency.percentiles", mandatory=False))
+            "latency": comma_separated_string_to_number_list(config.opts("workload", "latency.percentiles", mandatory=False)),
+            "service_time": comma_separated_string_to_number_list(config.opts("workload", "service_time.percentiles", mandatory=False))
         }
         self.logger = logging.getLogger(__name__)
 
@@ -235,7 +236,7 @@ class SummaryResultsPublisher:
             self._line("Mean Throughput", task, throughput["mean"], unit, lambda v: "%.2f" % v),
             self._line("Median Throughput", task, throughput["median"], unit, lambda v: "%.2f" % v),
             self._line("Max Throughput", task, throughput["max"], unit, lambda v: "%.2f" % v),
-            *self._publish_percentiles("throughput", task, throughput)
+            *self._publish_percentiles("throughput", task, throughput, unit=unit)
         )
 
     def _publish_latency(self, values, task):

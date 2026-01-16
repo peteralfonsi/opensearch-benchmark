@@ -289,7 +289,8 @@ def calculate_results(store, test_run):
         test_run.workload,
         test_run.test_procedure,
         latency_percentiles=test_run.latency_percentiles,
-        throughput_percentiles=test_run.throughput_percentiles
+        throughput_percentiles=test_run.throughput_percentiles,
+        service_time_percentiles=test_run.service_time_percentiles
         )
     return calc()
 
@@ -1296,6 +1297,8 @@ def create_test_run(cfg, workload, test_procedure, workload_revision=None):
                                    default_value=GlobalStatsCalculator.DEFAULT_LATENCY_PERCENTILES)
     throughput_percentiles = cfg.opts("workload", "throughput.percentiles", mandatory=False,
                                       default_value=GlobalStatsCalculator.DEFAULT_THROUGHPUT_PERCENTILES)
+    service_time_percentiles = cfg.opts("workload", "service_time.percentiles", mandatory=False,
+                                      default_value=GlobalStatsCalculator.DEFAULT_SERVICE_TIME_PERCENTILES)
     # In tests, we don't get the default command-line arg value for percentiles,
     # so supply them as defaults here as well
 
@@ -1304,7 +1307,7 @@ def create_test_run(cfg, workload, test_procedure, workload_revision=None):
     pipeline, user_tags, workload,
     workload_params, test_procedure, cluster_config, cluster_config_params,
     plugin_params, workload_revision, latency_percentiles=latency_percentiles,
-    throughput_percentiles=throughput_percentiles)
+    throughput_percentiles=throughput_percentiles, service_time_percentiles=service_time_percentiles)
 
 
 class TestRun:
@@ -1314,7 +1317,8 @@ class TestRun:
                  cluster_config_params, plugin_params,
                  workload_revision=None, cluster_config_revision=None,
                  distribution_version=None, distribution_flavor=None,
-                 revision=None, results=None, meta_data=None, latency_percentiles=None, throughput_percentiles=None):
+                 revision=None, results=None, meta_data=None, latency_percentiles=None, 
+                 throughput_percentiles=None, service_time_percentiles=None):
         if results is None:
             results = {}
         # this happens when the test run is created initially
@@ -1329,6 +1333,8 @@ class TestRun:
             latency_percentiles = [float(value) for value in latency_percentiles.split(",")]
         if throughput_percentiles:
             throughput_percentiles = [float(value) for value in throughput_percentiles.split(",")]
+        if service_time_percentiles:
+            service_time_percentiles = [float(value) for value in service_time_percentiles.split(",")]
         self.benchmark_version = benchmark_version
         self.benchmark_revision = benchmark_revision
         self.environment_name = environment_name
@@ -1351,6 +1357,7 @@ class TestRun:
         self.meta_data = meta_data
         self.latency_percentiles = latency_percentiles
         self.throughput_percentiles = throughput_percentiles
+        self.service_time_percentiles = service_time_percentiles
 
 
     @property
@@ -1794,16 +1801,20 @@ class GlobalStatsCalculator:
     DEFAULT_THROUGHPUT_PERCENTILES = ""
     DEFAULT_THROUGHPUT_PERCENTILES_LIST = []
 
+    DEFAULT_SERVICE_TIME_PERCENTILES = "50,90,99,99.9,99.99,100"
+    DEFAULT_SERVICE_TIME_PERCENTILES_LIST = [float(value) for value in DEFAULT_SERVICE_TIME_PERCENTILES.split(",")]
+
     OTHER_PERCENTILES = [50,90,99,99.9,99.99,100]
     # Use these percentiles when the single_latency fn is called for something other than latency
 
-    def __init__(self, store, workload, test_procedure, latency_percentiles=None, throughput_percentiles=None):
+    def __init__(self, store, workload, test_procedure, latency_percentiles=None, throughput_percentiles=None, service_time_percentiles=None):
         self.store = store
         self.logger = logging.getLogger(__name__)
         self.workload = workload
         self.test_procedure = test_procedure
         self.latency_percentiles = latency_percentiles
         self.throughput_percentiles = throughput_percentiles
+        self.service_time_percentiles = service_time_percentiles
 
     def __call__(self):
         result = GlobalStats()
@@ -2017,6 +2028,8 @@ class GlobalStatsCalculator:
         percentiles_list = self.OTHER_PERCENTILES
         if metric_name == "latency":
             percentiles_list = self.latency_percentiles
+        elif metric_name == "service_time": 
+            percentiles_list = self.service_time_percentiles
         if sample_size > 0:
             # The custom latency percentiles have to be supplied here as the workload runs,
             # or else they aren't present when results are published

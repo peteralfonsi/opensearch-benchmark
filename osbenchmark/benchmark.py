@@ -688,6 +688,12 @@ def create_arg_parser():
         default=metrics.GlobalStatsCalculator.DEFAULT_THROUGHPUT_PERCENTILES
     )
     test_run_parser.add_argument(
+        "--service-time-percentiles",
+        help=f"A comma-separated list of percentiles to report for service time percentiles"
+             f"(default: {metrics.GlobalStatsCalculator.DEFAULT_SERVICE_TIME_PERCENTILES}).",
+        default=metrics.GlobalStatsCalculator.DEFAULT_SERVICE_TIME_PERCENTILES
+    )
+    test_run_parser.add_argument(
         "--randomization-enabled",
         help="Runs the given workload with query randomization enabled (default: false).",
         default=False,
@@ -1135,6 +1141,7 @@ def configure_test(arg_parser, args, cfg):
         cfg.add(config.Scope.applicationOverride, "workload", "redline.cpu_check_interval", args.redline_cpu_check_interval)
     cfg.add(config.Scope.applicationOverride, "workload", "latency.percentiles", args.latency_percentiles)
     cfg.add(config.Scope.applicationOverride, "workload", "throughput.percentiles", args.throughput_percentiles)
+    cfg.add(config.Scope.applicationOverride, "workload", "service_time.percentiles", args.service_time_percentiles)
     cfg.add(config.Scope.applicationOverride, "workload", "randomization.enabled", args.randomization_enabled)
     cfg.add(config.Scope.applicationOverride, "workload", "randomization.repeat_frequency", args.randomization_repeat_frequency)
     cfg.add(config.Scope.applicationOverride, "workload", "randomization.n", args.randomization_n)
