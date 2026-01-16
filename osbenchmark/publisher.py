@@ -281,7 +281,7 @@ class SummaryResultsPublisher:
 
     def _publish_error_rate(self, values, task):
         return self._join(
-            self._line("error rate", task, values["error_rate"], "%", lambda v: "%.2f" % (v * 100.0))
+            self._line("error rate", task, values["error_rate"], "%", lambda v: "%.4f" % (v * 100.0))
         )
 
     def _publish_totals(self, stats):
